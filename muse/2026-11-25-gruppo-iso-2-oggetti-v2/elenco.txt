@@ -1,0 +1,13 @@
+baracca_interno_iso.png.b64
+baracca_iso.png.b64
+container_ocra_iso.png.b64
+container_ruggine_iso.png.b64
+container_verde_iso.png.b64
+derrick_iso.png.b64
+gru_iso.png.b64
+serbatoio_iso.png.b64
+testa_pozzo_iso.png.b64
+tubo_curva_iso.png.b64
+tubo_dritto_iso.png.b64
+tubo_t_iso.png.b64
+anteprima_iso2_v2_scala.png.b64.1 + anteprima_iso2_v2_scala.png.b64.2 + anteprima_iso2_v2_scala.png.b64.3 (file unico spezzato per limite di invio: concatenare in ordine e decodificare)
