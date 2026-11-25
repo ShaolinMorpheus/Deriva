@@ -1,0 +1,4 @@
+piattaforma_1_classica.png
+piattaforma_2_avamposto.png
+piattaforma_3_derrick.png
+piattaforma_4_deposito.png
