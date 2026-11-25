@@ -1,0 +1,5 @@
+macchia_olio_1.png.b64
+macchia_olio_2.png.b64
+macchia_petrolio_1.png.b64
+macchia_petrolio_2.png.b64
+anteprima_chiazza_v3.png.b64
