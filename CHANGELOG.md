@@ -2,6 +2,14 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2d — 27 nov 2026, notte — PROVA ISOMETRICA: in gioco si legge «v0.2d · prova isometrica · grafica Muse»
+- **Camminata vera del protagonista** (Gruppo iso 4 di Muse: 6 fotogrammi × 4 direzioni, tela 70×108, piedi in (35,104), alto 100 px come il fermo). Al posto del rimbalzo provvisorio (`WALK_BOB` tolto). Il passo avanza con la **distanza percorsa sullo schermo** (`CFG.WALK_CYCLE` = 118 px PNG per ciclo completo): i piedi seguono il terreno e a joystick più piano il passo rallenta. Da fermo torna il disegno fermo di Iso 3 (stesso punto-piedi, niente salto).
+- **Velocità a piedi 130 → 110 px CSS/s** (`CFG.WALK_SPEED`): con 130 e il ciclo vero i piedi pattinavano. Se la vuole più veloce si alza `WALK_CYCLE` insieme.
+- **Controllo della consegna** (31/31 file): tela 70×108 in 24/24, altezza 100 px esatti in 24/24, piedi a y=104 in 24/24, residuo magenta 0, chiusura del ciclo 6→1 coerente con gli altri passaggi. Dettagli in `muse/2026-11-26-gruppo-iso-4-camminata-protagonista/RISPOSTA.md`.
+- **Difetto dichiarato (da far rifare):** in tutti i 6 fotogrammi di ogni direzione le gambe restano aperte alla stessa ampiezza (SE 49–55 px, SO 51–53, NE 48–51, NO 41–49 a livello dei piedi) e la gamba davanti è sempre la stessa: non c'è il passo «a gambe unite» (posa di passaggio) né lo scambio della gamba. Cambiano soprattutto le braccia, quindi in movimento il personaggio scivola con le braccia che dondolano. Si rifà con un ciclo vero (contatto → passaggio → contatto opposto → passaggio).
+- Nota di Muse accettata: SE e SO sono quasi di profilo (il fermo è tre quarti); da valutare a occhio sul telefono.
+- Controlli: nessun errore in console; zattera, Sali/Scendi, joystick tattile come prima; 14,2 ms medi per fotogramma nel simulatore software (come prima).
+
 ## Progetto — 26 nov 2026, notte — in gioco resta «v0.2c · prova isometrica» (pubblicata)
 - **Decisione dell'utente: la zattera avrà 16 viste (una ogni 22,5°)** per girare fluida a 360°, disegnate da Muse. Richiesta e guide pronte in `muse/2026-11-26-zattera-16-viste/` (`RICHIESTA.md`, `guide/guide_zattera_16_foglio.png` e 16 guide singole): tela fissa 704×512, centro impronta a (352,336), disposizione degli oggetti a bordo in coordinate fisse, luce sempre da in alto a sinistra. Consegna a lotti (4 → 8 → 16 viste). Sostituisce la zattera v2.
 - **Motore pronto** (non pubblicato, nessuna differenza visibile finché non arrivano i disegni): `CFG.RAFT_VIEWS` = 4 | 8 | 16 (anche `?viste=8|16` nell'indirizzo, per provare). Le viste stanno in `assets/iso/mezzi/zattera16/zattera_iso_00..15.png`; con 16 viste la sfumatura fra due viste vicine (22,5°) copre tutto l'intervallo; ombra e schiuma seguono la vista. Provato con un set finto: 4/8/16 viste senza errori, ~2 ms per fotogramma.
