@@ -2,6 +2,11 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## Progetto — 25 nov 2026, sera — nessun cambio al gioco: in gioco resta «v0.1b.8 · grafica Muse»
+- **Svolta isometrica (decisione dell'utente, ore 19:29).** Deriva passa dalla vista dall'alto alla vista **isometrica 2:1** (rombi, si vedono il sopra e due facce). La 4a/4b/4c dall'alto a tessere quadrate è scartata. Il mare dei Gruppi 1 e v4 resta come fondo continuo; zattera, relitti e protagonista andranno ridisegnati in isometrico.
+- **Ricevuti e controllati** i Gruppi iso 1 (pavimenti e bordi) e iso 2 (12 oggetti + anteprima completa a due parti): file e misure corretti. Da far rifare a Muse: alone magenta su derrick, serbatoio, baracca e container ocra; facce sud-ovest con geometria sbagliata (fanno una scalinata); scala e ancoraggi degli oggetti non dichiarati. Dettagli in `muse/2026-11-25-gruppo-iso-2-oggetti/RISPOSTA.md`.
+- **Non montato nel gioco**: serve il motore a rombi (movimento, collisioni, ordine di disegno) e, per giocare, zattera e protagonista isometrici. Il gioco dall'alto v0.1b.8 resta intatto (`www/` e `www/storico/`).
+
 ## 0.1b.8 — 25 nov 2026 — in gioco si legge «v0.1b.8 · grafica Muse»
 - **Risolti gli scatti** (sul telefono la v0.1b.7 faceva ~6 fps, picco 280 ms). Due cause, due rimedi, nessuna grafica ridotta:
   - **Il mare si compone una volta sola.** Prima ogni fotogramma rifaceva ~15 passaggi a schermo intero (tessere, blu, maschere). Ora il mare è composto in blocchi da 512×512 pixel del dispositivo, tenuti in memoria; ogni fotogramma ne copia solo quelli visibili. Un blocco nuovo per fotogramma viene preparato in anticipo nella direzione di marcia; quelli lontani si buttano. Se cambiano bottoni o schermo, i blocchi si rifanno da soli. Nel simulatore (caso del tuo screenshot): ~260 → ~40 ms.

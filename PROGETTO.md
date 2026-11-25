@@ -17,6 +17,7 @@ Se sprechi benzina, resti alla deriva.
 
 ## Decisioni dell'utente e correzioni (25 nov 2026)
 Decise dall'utente:
+- **Vista isometrica 2:1** (25 nov 2026, sera): sostituisce la vista dall'alto per strutture, oggetti e personaggi. Il mare resta fondo continuo. Il resto del documento (generazione, POI, giro benzina) vale ancora; le misure in px e la «vista dall'alto» sono da aggiornare quando c'è il motore iso. Regole di Muse in `muse/ISTRUZIONI.md`.
 - **Telefono in orizzontale.** Joystick nel 55% sinistro dello schermo, azioni a destra.
 - **Niente contorni scuri** attorno agli oggetti (solo giunture interne scure, es. tra le assi).
 - **I relitti si raccolgono dalla zattera** col tasto azione, senza sbarcare. A piedi si scende solo su atollo, avamposto e piattaforma.
