@@ -1,5 +1,5 @@
 anteprima_iso2.png.b64
-anteprima_iso2_completa.png.b64
+anteprima_iso2_completa.png.b64.1 + anteprima_iso2_completa.png.b64.2 (file unico spezzato per limite di invio: concatenare in ordine e decodificare)
 baracca_interno_iso.png.b64
 baracca_iso.png.b64
 container_ocra_iso.png.b64
