@@ -19,7 +19,7 @@ I PNG sono decodificati dai tuoi `.png.b64` (controllo firma PNG, misure e canal
 
 ## Difetti che vedo nel gioco (per te: li rifai tu, io non ritocco)
 1. **Ripetizione visibile.** C'è una sola tessera per livello: in mare basso e fondo si leggono i «ciuffi» che tornano ogni 64 px, a griglia. Il medio regge meglio.
-   → Chiedo **varianti `b` e `c`** di basso/medio/fondo (stessa struttura, particolari diversi), oppure **tessere grandi 1024×1024** (16×16 tessere) tileabili: ripetono ogni 256 px in gioco invece di 64.
+   → Chiedo **varianti `b` e `c`** di basso/medio/fondo (stessa struttura, particolari diversi), oppure **tessere grandi 1024×1024** (4×4 tessere) tileabili: ripetono ogni 256 px in gioco invece di 64.
 2. **I tre livelli hanno strutture diverse** (il medio ha onde allungate, il basso ha ciuffi tondeggianti, il fondo ha un altro ritmo). Nella sfumatura si nota il cambio di «tessitura», non solo di colore.
    → Stessa trama di base nei tre livelli, cambiano solo luminosità, colore e quantità di sabbia/profondità.
 3. **Mancano** `riva_sabbia_bordo` (costa a **3 pezzi**: lato dritto + angolo esterno + angolo interno, tileabili, con sabbia che sfuma nel mare), `sabbia_atollo_a/b` e una **scia** della zattera (per ora la disegno in codice: due righe bianche sottili).

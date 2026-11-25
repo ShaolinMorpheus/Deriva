@@ -40,7 +40,7 @@
    =========================================================================== */
 //#region config
 const CFG = {
-  VERSION: 'v0.1b.4',
+  VERSION: 'v0.1b.5',
   SEED: 12345,            // seed fissa di prova: stesso mondo per tutti i test
   TILE: 64,               // px per tessera (in gioco). I PNG di Muse sono a 4x: 256 px
   CHUNK: 16,              // tessere per lato di un chunk (16x16 -> 1024 px)
@@ -48,9 +48,12 @@ const CFG = {
   DEPTH_SCALE: 14,        // dimensione delle "macchie" di profondità, in tessere
   SLICK_P: 0.12,          // probabilità di una chiazza di prova per chunk
   SLICK_PETROLIO: 0.35,   // di queste, quota di «petrolio» (le altre sono «acqua»)
-  SLICK_PERIOD: 1.8,      // secondi tra un fotogramma e l'altro della chiazza (2 fotogrammi, quasi ferma)
-  SLICK_FADE: 1.0,        // secondi di dissolvenza incrociata dentro quel periodo
+  SLICK_PERIOD: 1.2,      // secondi tra un fotogramma e l'altro della chiazza (2 fotogrammi)
+  SLICK_FADE: 0.6,        // secondi di dissolvenza incrociata dentro quel periodo
   SLICK_DRIFT: 1.5,       // deriva in px (0 = ferma del tutto)
+  FLOW_A1: 0.30,          // mare in movimento: forza del 1° strato di luce scorrevole (0 = mare fermo)
+  FLOW_A2: 0.24,          // idem, 2° strato (più largo, direzione diversa)
+  FLOW_SPEED: 1.0,        // velocità dello scorrimento (1 = normale, 2 = doppia)
   RAFT_SPEED: 4,          // tessere al secondo, a joystick tutto spinto
   RAFT_ACCEL: 6,          // tessere/s^2 in accelerazione
   RAFT_BRAKE: 9,          // tessere/s^2 quando rilasci il joystick (si ferma in ~0,5 s)
@@ -330,6 +333,46 @@ function drawSea(cx, cy) {                  // mare: tessere di Muse; basso/fond
   }
 }
 
+// ---- mare in movimento ------------------------------------------------------------
+// Due strati di sola LUCE (non di colore) fatti dalla tessera media di Muse, che scorrono in direzioni diverse
+// sopra il mare e si muovono con il mondo. Sovrapposti si «incrociano» come le onde. Provvisorio: la versione
+// definitiva sarà un disegno di Muse (onde/riflessi trasparenti da far scorrere).
+let flowCv = null, flowP1 = null, flowP2 = null;
+function makeFlow() {
+  const S = A.mare1.width, c = mkCanvas(S, S), g = c.getContext('2d');
+  g.drawImage(A.mare1, 0, 0);
+  const d = g.getImageData(0, 0, S, S), p = d.data, Y = new Float32Array(S * S);
+  let sum = 0;
+  for (let i = 0, k = 0; i < Y.length; i++, k += 4) { Y[i] = 0.299 * p[k] + 0.587 * p[k + 1] + 0.114 * p[k + 2]; sum += Y[i]; }
+  const mean = sum / Y.length;
+  for (let i = 0, k = 0; i < Y.length; i++, k += 4) {
+    const v = Math.max(0, Math.min(255, 128 + (Y[i] - mean) * 2.2));
+    p[k] = p[k + 1] = p[k + 2] = v; p[k + 3] = 255;
+  }
+  g.putImageData(d, 0, 0);
+  flowCv = c; flowP1 = ctx.createPattern(c, 'repeat'); flowP2 = ctx.createPattern(c, 'repeat');
+}
+function flowLayer(pat, alpha, k, rot, vx, vy, cx, cy, t) {
+  if (alpha <= 0 || !pat.setTransform) return;
+  const S = flowCv.width, P = S * k, co = Math.cos(rot), si = Math.sin(rot);
+  let ox = (W / 2 - cx + vx * t) * dpr, oy = (H / 2 - cy + vy * t) * dpr;     // origine del mondo + scorrimento
+  let lx = co * ox + si * oy, ly = -si * ox + co * oy;                        // riduzione al periodo: niente numeri enormi
+  lx = ((lx % P) + P) % P; ly = ((ly % P) + P) % P;
+  ox = co * lx - si * ly; oy = si * lx + co * ly;
+  pat.setTransform(new DOMMatrix([k * co, k * si, -k * si, k * co, ox, oy]));
+  ctx.globalAlpha = alpha; ctx.fillStyle = pat; ctx.fillRect(0, 0, cv.width, cv.height);
+}
+function drawFlow(cx, cy) {
+  if (CFG.FLOW_A1 <= 0 && CFG.FLOW_A2 <= 0) return;
+  if (!flowCv) makeFlow();
+  const t = stats.t * CFG.FLOW_SPEED, base = dpr * CFG.TILE / flowCv.width;     // 1 px del PNG = 1/4 px di gioco
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = 'overlay';
+  flowLayer(flowP1, CFG.FLOW_A1, base, 0, 9, 3.5, cx, cy, t);
+  flowLayer(flowP2, CFG.FLOW_A2, base * 1.7, 0.45, -5.5, 7, cx, cy, t);
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+}
+
 function drawSlicks(ox, oy) {               // chiazze quasi ferme: 2 fotogrammi lenti con dissolvenza, deriva minima
   const t = stats.t, F = [[A.olio1, A.olio2], [A.petr1, A.petr2]];
   const P = CFG.SLICK_PERIOD, fadeStart = 1 - CFG.SLICK_FADE / P, D = CFG.SLICK_DRIFT;
@@ -351,6 +394,7 @@ function render() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = '#6f8f93'; ctx.fillRect(0, 0, cv.width, cv.height);
   drawSea(cx, cy);
+  drawFlow(cx, cy);
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const ox = -cx + W / 2, oy = -cy + H / 2;

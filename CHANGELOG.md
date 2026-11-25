@@ -2,6 +2,15 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.1b.5 — 25 nov 2026 — in gioco si legge «v0.1b.5 · grafica Muse»
+- **Chiazze più rapide** (richiesta dell'utente: così lenta sembrava il mare sotto a muoversi, non la chiazza). Cambio ogni **1,2 s** (era 1,8) con dissolvenza di **0,6 s** (era 1,0). Deriva invariata (±1,5 px). Regolabili in `CFG`: `SLICK_PERIOD`, `SLICK_FADE`, `SLICK_DRIFT`.
+- **Mare in movimento (PROVVISORIO, richiesta dell'utente: «lo vedo fermo, voglio che si veda che è in movimento»).** Fino alla v0.1b.4 il mare era fermo: dalla v0.1b.2 ho tolto le onde provvisorie e restavano solo le tessere statiche di Muse.
+  - Ora due strati di sola **luce** (ricavati dalla tessera media di Muse, in modalità `overlay`) scorrono piano in direzioni diverse sopra il mare, ancorati al mondo: sovrapposti si incrociano come onde. Il colore del mare non cambia, cambia la luce.
+  - Regolabili in `CFG`: `FLOW_A1` (0,30), `FLOW_A2` (0,24), `FLOW_SPEED` (1,0). Con `FLOW_A1: 0` e `FLOW_A2: 0` il mare torna fermo come nella v0.1b.4.
+  - Misurato nel simulatore: con il flusso il mare cambia in media ~6,5/255 ogni mezzo secondo (prima ~0). Costo: +~47% del tempo di disegno nel simulatore software (non rappresentativo): **da leggere sul telefono** (FPS nel pannello debug).
+  - A occhio fermo il mare risulta più «macchiato» di prima: è la luce che si sovrappone. Se non piace si abbassano i due valori.
+  - Versione definitiva: onde/riflessi disegnati da Muse (richiesta scritta nel `RISPOSTA.md` del Gruppo 1 v3).
+
 ## 0.1b.4 — 25 nov 2026 — in gioco si legge «v0.1b.4 · grafica Muse»
 - **Chiazze quasi ferme** (v3 di Muse, richiesta dell'utente: «troppe animazioni, meno, più statiche ma che diano sempre l'effetto»).
 - 2 fotogrammi per tipo (acqua / petrolio) invece di 4. Cambio ogni **1,8 s** con dissolvenza morbida di **1 s**; il resto del tempo la chiazza è ferma.
