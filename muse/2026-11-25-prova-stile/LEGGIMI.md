@@ -18,4 +18,7 @@
 - VERDETTO DI DAVIDE (25 nov 2026): **direzione di stile APPROVATA** — palette, materiali e povertà dell'atollo vanno bene. L'approvazione vale per la direzione, non per la vista inclinata: i pezzi veri restano dall'alto pura, come sopra.
 - Caricamento su GitHub in attesa che Davide crei il repo `deriva` (al 25 nov ore 12:22 non ancora raggiungibile da Muse).
 
+## Nota di caricamento (25 nov 2026)
+I PNG di questa consegna sono saliti su GitHub come `nome.png.b64` (base64, una riga) con `elenco.txt` che dà l'ordine: l'invio diretto dei PNG non è passato. Per usarli: decodificare ogni `.b64` nel `nome.png` corrispondente. Contenuto identico ai PNG originali (verifica per hash fatta da Muse dopo l'invio).
+
 STATO: pronto
