@@ -1,0 +1,14 @@
+anteprima_gruppo1.png.b64
+anteprima_macchia_olio.png.b64
+controllo_3x3_mare_basso_a.png.b64
+controllo_3x3_mare_fondo_a.png.b64
+controllo_3x3_mare_macchia_petrolio.png.b64
+controllo_3x3_mare_medio_a.png.b64
+macchia_olio_1.png.b64
+macchia_olio_2.png.b64
+macchia_olio_3.png.b64
+macchia_olio_4.png.b64
+mare_basso_a.png.b64
+mare_fondo_a.png.b64
+mare_macchia_petrolio.png.b64
+mare_medio_a.png.b64
