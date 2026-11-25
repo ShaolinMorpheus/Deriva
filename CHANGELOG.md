@@ -2,6 +2,18 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.1b.8 — 25 nov 2026 — in gioco si legge «v0.1b.8 · grafica Muse»
+- **Risolti gli scatti** (sul telefono la v0.1b.7 faceva ~6 fps, picco 280 ms). Due cause, due rimedi, nessuna grafica ridotta:
+  - **Il mare si compone una volta sola.** Prima ogni fotogramma rifaceva ~15 passaggi a schermo intero (tessere, blu, maschere). Ora il mare è composto in blocchi da 512×512 pixel del dispositivo, tenuti in memoria; ogni fotogramma ne copia solo quelli visibili. Un blocco nuovo per fotogramma viene preparato in anticipo nella direzione di marcia; quelli lontani si buttano. Se cambiano bottoni o schermo, i blocchi si rifanno da soli. Nel simulatore (caso del tuo screenshot): ~260 → ~40 ms.
+  - **Le onde non sono più disegnate nel canvas.** Sono 4 strati (2 Muse + 2 Claude) fatti con elementi della pagina che il telefono sposta con la GPU, senza ridisegnarli: ogni fotogramma cambia solo la posizione. Ordine dal basso: mare → onde → chiazze, scia, zattera, joystick (secondo canvas trasparente). Nel simulatore il mix passa da ~62 a ~7 ms.
+- **Mix onde Claude + Muse** (richiesta dell'utente). Nuova scelta di serie del bottone «Onde»: Muse + Claude → Muse → Claude → spente.
+- **Di serie ora:** onde Muse + Claude, blu Muse, varianti b **no** (come deciso dall'utente). Chiave di salvataggio nuova `deriva_prova2`: le vecchie scelte della v0.1b.7 si azzerano.
+- **Cambiamento visibile:** il secondo strato di Claude non è più ruotato (0,45 rad): con gli elementi della pagina un strato ruotato dovrebbe essere enorme. Resta più piccolo (×1,7) e scorre in direzione diversa, quindi le onde si incrociano lo stesso. Muse invariato.
+- Le chiazze prendono il velo blu della zona anche con «Blu: Claude» (prima solo con «Blu: Muse»), perché ora il blu sta nel mare, sotto.
+- Pannello debug: riga nuova `ms: mare … onde … tutto … blocchi`, per vedere dove va il tempo.
+- **FPS veri da leggere sul telefono** (pannello debug). Nel simulatore software (1,5× più lento del telefono): fermo ~7 ms, in moto ~10 ms medi (picchi ~30–45 ms quando entra un blocco nuovo).
+- Versione precedente (v0.1b.7) conservata in `www/storico/`.
+
 ## 0.1b.7 — 25 nov 2026 — in gioco si legge «v0.1b.7 · grafica Muse»
 - **Montata la consegna v4 di Muse** (`gruppo-1-mare-v4`): overlay onde, tessere blu (medio e fondo), varianti b di basso/medio/fondo.
 - **Bottoni «prova mare»** in alto a destra (si vedono finché il pannello debug è acceso; toccando la versione in basso due volte spariscono). Ognuno cambia al tocco e la scelta resta salvata sul telefono:

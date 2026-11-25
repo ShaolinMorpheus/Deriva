@@ -8,10 +8,12 @@
   html,body{margin:0;height:100%;background:#2b4a56;overflow:hidden;overscroll-behavior:none;touch-action:none;
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
     font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-  #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
-  #ver{position:fixed;left:0;right:0;bottom:calc(4px + env(safe-area-inset-bottom));text-align:center;
+  #sea{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+  #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;z-index:2}
+  .wv{position:fixed;left:0;top:0;z-index:1;pointer-events:none;display:none;will-change:transform,opacity;background-repeat:repeat}
+  #ver{position:fixed;z-index:3;left:0;right:0;bottom:calc(4px + env(safe-area-inset-bottom));text-align:center;
     font:600 12px/1 system-ui,sans-serif;color:#eaf4f1;opacity:.85;text-shadow:0 1px 2px #000b;padding:10px 0;cursor:pointer}
-  #dbg{position:fixed;left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));
+  #dbg{position:fixed;z-index:3;left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));
     font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#eaf4f1;background:#0a1c2299;padding:6px 8px;
     border-radius:6px;white-space:pre;pointer-events:none}
   #rot{position:fixed;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;justify-content:center;
@@ -25,11 +27,13 @@
     display:flex;flex-direction:column;gap:6px;align-items:flex-end}
   #prova button{font:700 12px/1 system-ui,sans-serif;color:#eaf4f1;background:#0a1c22cc;border:1px solid #ffffff44;border-radius:14px;
     padding:10px 12px;min-width:140px;text-align:left;touch-action:manipulation}
-  #hint{position:fixed;left:0;right:0;top:34%;text-align:center;font:600 15px/1.3 system-ui,sans-serif;color:#fff;
+  #hint{position:fixed;z-index:3;left:0;right:0;top:34%;text-align:center;font:600 15px/1.3 system-ui,sans-serif;color:#fff;
     text-shadow:0 1px 3px #000c;pointer-events:none;transition:opacity 1.2s}
 </style>
 </head>
 <body>
+<canvas id="sea"></canvas>
+<div class="wv" id="wv0"></div><div class="wv" id="wv1"></div><div class="wv" id="wv2"></div><div class="wv" id="wv3"></div>
 <canvas id="game"></canvas>
 <div id="dbg"></div>
 <div id="prova"><button data-k="onde"></button><button data-k="blu"></button><button data-k="var"></button></div>
@@ -45,7 +49,7 @@
    =========================================================================== */
 //#region config
 const CFG = {
-  VERSION: 'v0.1b.7',
+  VERSION: 'v0.1b.8',
   SEED: 12345,            // seed fissa di prova: stesso mondo per tutti i test
   TILE: 64,               // px per tessera (in gioco). I PNG di Muse sono a 4x: 256 px
   CHUNK: 16,              // tessere per lato di un chunk (16x16 -> 1024 px)
@@ -62,9 +66,9 @@ const CFG = {
   BLUE_LO: 0.58,          // soglia di rumore da cui inizia il blu
   BLUE_HI: 0.76,          // soglia a cui il blu è pieno
   BLUE_DEPTH: 0.22,       // quanto il mare fondo ne ha di più (e il basso di meno)
-  MARE_ONDE: 2,           // movimento del mare: 0 spento, 1 provvisorio di Claude, 2 overlay di Muse (si cambia in gioco)
+  MARE_ONDE: 3,           // movimento del mare: 0 spento, 1 provvisorio di Claude, 2 overlay di Muse, 3 mix dei due (si cambia in gioco)
   MARE_BLU: 2,            // profondità blu: 0 spenta, 1 velo di Claude (in codice), 2 tessere blu di Muse
-  MARE_VAR: 1,            // 1 = alterna le tessere a/b di Muse per spezzare la ripetizione, 0 = solo a
+  MARE_VAR: 0,            // 1 = alterna le tessere a/b di Muse per spezzare la ripetizione, 0 = solo a
   ONDE_A1: 0.8,           // overlay di Muse: opacità 1° strato
   ONDE_A2: 0.55,          // idem 2° strato (stessa orientazione, più largo, scorre in un'altra direzione)
   FLOW_A1: 0.30,          // mare in movimento: forza del 1° strato di luce scorrevole (0 = mare fermo)
@@ -151,8 +155,10 @@ function makeChunk(cx, cy, seed) {          // dati di un chunk
    GIOCO
    =========================================================================== */
 const BUILD = '__BUILD__';                  // lo sostituisce la pubblicazione su GitHub Pages; nell'anteprima resta com'è
-const cv = document.getElementById('game');
-const ctx = cv.getContext('2d', { alpha: false });
+const cv = document.getElementById('game');            // sopra: zattera, scia, chiazze, joystick (trasparente)
+const ctx = cv.getContext('2d');
+const sv = document.getElementById('sea');             // sotto: il mare (opaco); in mezzo, gli strati d'onda (DOM, li muove la GPU)
+const sctx = sv.getContext('2d', { alpha: false });
 const dbgEl = document.getElementById('dbg');
 const verEl = document.getElementById('ver');
 const hintEl = document.getElementById('hint');
@@ -199,7 +205,7 @@ const stick = { id: null, ox: 0, oy: 0, x: 0, y: 0, active: false };
 const keys = { left: 0, right: 0, up: 0, down: 0 };
 const trail = [];
 const chunks = new Map();
-const stats = { t: 0, dist: 0, genMs: 0, genMax: 0, loaded: 0 };
+const stats = { msSea: 0, msFlow: 0, msAll: 0, t: 0, dist: 0, genMs: 0, genMax: 0, loaded: 0 };
 let trailTimer = 0;
 let dbgMode = 1;                            // 0 nascosto, 1 info, 2 info + griglia chunk
 
@@ -207,7 +213,7 @@ let dbgMode = 1;                            // 0 nascosto, 1 info, 2 info + grig
 function resize() {
   dpr = Math.min(4, window.devicePixelRatio || 1);
   W = window.innerWidth; H = window.innerHeight;
-  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  cv.width = sv.width = Math.round(W * dpr); cv.height = sv.height = Math.round(H * dpr);
   portrait = H > W;
   document.getElementById('rot').style.display = portrait ? 'flex' : 'none';
   if (portrait) { stick.id = null; stick.active = false; }
@@ -252,16 +258,16 @@ window.addEventListener('keyup', e => { const k = KEYMAP[e.key]; if (k) keys[k] 
 // ---- bottoni «prova mare» (si vedono finché il pannello debug è acceso; la scelta resta salvata) ----
 const provaEl = document.getElementById('prova');
 const PROVA = {
-  onde: { key: 'MARE_ONDE', vals: [2, 1, 0], txt: { 2: 'Muse', 1: 'Claude', 0: 'spente' }, label: 'Onde' },
+  onde: { key: 'MARE_ONDE', vals: [3, 2, 1, 0], txt: { 3: 'Muse + Claude', 2: 'Muse', 1: 'Claude', 0: 'spente' }, label: 'Onde' },
   blu: { key: 'MARE_BLU', vals: [2, 1, 0], txt: { 2: 'Muse', 1: 'Claude', 0: 'spento' }, label: 'Blu' },
   var: { key: 'MARE_VAR', vals: [1, 0], txt: { 1: 'sì', 0: 'no' }, label: 'Varianti b' }
 };
-try { const sv = JSON.parse(localStorage.getItem('deriva_prova') || '{}'); for (const k in PROVA) if (PROVA[k].vals.indexOf(sv[k]) >= 0) CFG[PROVA[k].key] = sv[k]; } catch (e) {}
+try { const sv = JSON.parse(localStorage.getItem('deriva_prova2') || '{}'); for (const k in PROVA) if (PROVA[k].vals.indexOf(sv[k]) >= 0) CFG[PROVA[k].key] = sv[k]; } catch (e) {}
 function provaLabels() { provaEl.querySelectorAll('button').forEach(b => { const p = PROVA[b.dataset.k]; b.textContent = p.label + ': ' + p.txt[CFG[p.key]]; }); }
 provaEl.querySelectorAll('button').forEach(b => b.addEventListener('pointerdown', e => {
   const p = PROVA[b.dataset.k], i = p.vals.indexOf(CFG[p.key]);
   CFG[p.key] = p.vals[(i + 1) % p.vals.length]; provaLabels();
-  try { const o = {}; for (const k in PROVA) o[k] = CFG[PROVA[k].key]; localStorage.setItem('deriva_prova', JSON.stringify(o)); } catch (er) {}
+  try { const o = {}; for (const k in PROVA) o[k] = CFG[PROVA[k].key]; localStorage.setItem('deriva_prova2', JSON.stringify(o)); } catch (er) {}
   e.stopPropagation(); e.preventDefault();
 }));
 provaLabels();
@@ -317,76 +323,107 @@ function roundRectPath(g, x, y, w, h, r) {
   g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
 }
 
-const MS = 16;                              // px CSS per campione della maschera di profondità (il campo è liscio: bastano 16)
-let layB = null, layF = null, layUM = null, layUF = null, mkB = null, mkF = null, mkUM = null, mkUF = null, mkW = 0, mkH = 0;
-let mkImgB = null, mkImgF = null, mkImgUM = null, mkImgUF = null;
 function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
-function drawSea(cx, cy) {                  // mare: tessere di Muse; basso/fondo (e il blu) si sfumano sul medio con maschere morbide
-  const N = CFG.CHUNK, T = CFG.TILE;
-  const useBlu = CFG.MARE_BLU === 2, useVar = CFG.MARE_VAR === 1;
-  if (!layB || layB.width !== cv.width || layB.height !== cv.height) { layB = mkCanvas(cv.width, cv.height); layF = mkCanvas(cv.width, cv.height); layUM = layUF = null; }
-  if (useBlu && !layUM) { layUM = mkCanvas(cv.width, cv.height); layUF = mkCanvas(cv.width, cv.height); }
-  const gB = layB.getContext('2d'), gF = layF.getContext('2d');
-  const gUM = useBlu ? layUM.getContext('2d') : null, gUF = useBlu ? layUF.getContext('2d') : null;
 
-  // maschere: un campione ogni MS px, agganciate al mondo (non "nuotano" quando la camera si muove)
-  const gx0 = Math.floor((cx - W / 2) / MS) - 1, gy0 = Math.floor((cy - H / 2) / MS) - 1;
-  const gw = Math.ceil(W / MS) + 4, gh = Math.ceil(H / MS) + 4;
-  if (!mkB || mkW !== gw || mkH !== gh) {
-    mkB = mkCanvas(gw, gh); mkF = mkCanvas(gw, gh); mkW = gw; mkH = gh;
-    mkImgB = mkB.getContext('2d').createImageData(gw, gh); mkImgF = mkF.getContext('2d').createImageData(gw, gh);
-    mkUM = mkCanvas(gw, gh); mkUF = mkCanvas(gw, gh);
-    mkImgUM = mkUM.getContext('2d').createImageData(gw, gh); mkImgUF = mkUF.getContext('2d').createImageData(gw, gh);
-  }
-  const dB = mkImgB.data, dF = mkImgF.data, dUM = mkImgUM.data, dUF = mkImgUF.data;
-  let needB = false, needF = false, needUM = false, needUF = false;
-  for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
-    const tx = (gx0 + gx) * MS / T, ty = (gy0 + gy) * MS / T;
-    const L = depthL(tx, ty, CFG.SEED), k = (gy * gw + gx) * 4;
+// ---- mare a cache -----------------------------------------------------------------
+// Il mare dipende solo dal mondo, non cambia mai: si compone UNA volta in blocchi da SB×SB px del dispositivo
+// (tessere di Muse + sfumature di profondità + blu) e ogni fotogramma si copiano solo i blocchi visibili.
+// Prima ogni fotogramma rifaceva 4 strati a schermo intero con maschere: troppo per il telefono.
+// L'aspetto è lo stesso: stessi pixel, stesse maschere agganciate al mondo, stesso arrotondamento delle tessere.
+const SB = 512;
+const MS = 16;                              // px CSS per campione della maschera di profondità (il campo è liscio: bastano 16)
+const seaBlocks = new Map();                // "bx,by" -> { c, g, ver }
+let seaVer = 1, seaSig = '';
+let seaTmp = null;                          // strati di lavoro, riusati da ogni blocco
+function seaWork() {
+  if (seaTmp) return seaTmp;
+  const gw = Math.ceil(SB / dpr / MS) + 4, mk = () => mkCanvas(gw, gw);
+  const L = ['B', 'F', 'UM', 'UF'].map(n => {
+    const lay = mkCanvas(SB, SB), m = mk();
+    return { n, lay, g: lay.getContext('2d'), m, mg: m.getContext('2d'), img: m.getContext('2d').createImageData(gw, gw), need: false };
+  });
+  seaTmp = { gw, L, dpr };
+  return seaTmp;
+}
+function renderSeaBlock(blk, bx, by) {
+  const T = CFG.TILE, useBlu = CFG.MARE_BLU === 2, useVar = CFG.MARE_VAR === 1;
+  const ox = bx * SB, oy = by * SB, g0 = blk.g;
+  if (seaTmp && seaTmp.dpr !== dpr) seaTmp = null;
+  const wk = seaWork(), gw = wk.gw, [LB, LF, LUM, LUF] = wk.L;
+  const gx0 = Math.floor(ox / dpr / MS) - 1, gy0 = Math.floor(oy / dpr / MS) - 1;
+  for (const l of wk.L) l.need = false;
+  for (let gy = 0; gy < gw; gy++) for (let gx = 0; gx < gw; gx++) {      // maschere (un campione ogni MS px CSS, agganciato al mondo)
+    const tx = (gx0 + gx) * MS / T, ty = (gy0 + gy) * MS / T, k = (gy * gw + gx) * 4;
+    const L = depthL(tx, ty, CFG.SEED);
     const aB = L < 1 ? (1 - L) * 255 : 0, aF = L > 1 ? (L - 1) * 255 : 0;
-    dB[k + 3] = aB; dF[k + 3] = aF;
-    if (aB > 0) needB = true; if (aF > 0) needF = true;
+    LB.img.data[k + 3] = aB; LF.img.data[k + 3] = aF;
+    if (aB > 0) LB.need = true; if (aF > 0) LF.need = true;
     if (useBlu) {                           // blu di Muse: quantità dal rumore fisso, ripartita tra medio-blu e fondo-blu secondo la profondità
       const bl = blueAt(tx, ty, L, CFG.SEED) * 255, wM = L <= 1 ? 1 : Math.max(0, 2 - L), wF = L > 1 ? Math.min(1, L - 1) : 0;
-      dUM[k + 3] = bl * wM; dUF[k + 3] = bl * wF;
-      if (dUM[k + 3] > 0) needUM = true; if (dUF[k + 3] > 0) needUF = true;
+      LUM.img.data[k + 3] = bl * wM; LUF.img.data[k + 3] = bl * wF;
+      if (bl * wM > 0) LUM.need = true; if (bl * wF > 0) LUF.need = true;
     }
   }
+  for (const l of wk.L) if (l.need) { l.g.setTransform(1, 0, 0, 1, 0, 0); l.g.globalCompositeOperation = 'source-over'; l.g.clearRect(0, 0, SB, SB); l.g.imageSmoothingEnabled = true; l.g.imageSmoothingQuality = 'high'; }
+  g0.setTransform(1, 0, 0, 1, 0, 0); g0.imageSmoothingEnabled = true; g0.imageSmoothingQuality = 'high';
 
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-  const lays = [[gB, layB, needB], [gF, layF, needF], [gUM, layUM, needUM], [gUF, layUF, needUF]];
-  for (const [g, lay, need] of lays) {
-    if (!g) continue;
-    g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over';
-    if (need) { g.clearRect(0, 0, lay.width, lay.height); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; }
+  const td = T * dpr, gi0 = Math.floor(ox / td) - 1, gi1 = Math.floor((ox + SB) / td) + 1, gj0 = Math.floor(oy / td) - 1, gj1 = Math.floor((oy + SB) / td) + 1;
+  for (let gj = gj0; gj <= gj1; gj++) for (let gi = gi0; gi <= gi1; gi++) {
+    const x0 = Math.round(gi * td) - ox, y0 = Math.round(gj * td) - oy, w = Math.round((gi + 1) * td) - ox - x0, h = Math.round((gj + 1) * td) - oy - y0;
+    if (x0 >= SB || y0 >= SB || x0 + w <= 0 || y0 + h <= 0) continue;
+    const Lc = depthL(gi + 0.5, gj + 0.5, CFG.SEED);
+    const vb = useVar && hash2(gi, gj, CFG.SEED + 9) < 0.5;                              // tessera a oppure b, scelta dalle coordinate
+    g0.drawImage(vb ? A.mare1b : A.mare1, x0, y0, w, h);                                  // base: acqua media
+    if (LB.need && Lc < 1.3) LB.g.drawImage(vb ? A.mare0b : A.mare0, x0, y0, w, h);       // basso, dove serve
+    if (LF.need && Lc > 0.7) LF.g.drawImage(vb ? A.mare2b : A.mare2, x0, y0, w, h);       // fondo, dove serve
+    if (LUM.need && Lc < 1.9) LUM.g.drawImage(A.mare1blu, x0, y0, w, h);                  // medio blu
+    if (LUF.need && Lc > 0.7) LUF.g.drawImage(A.mare2blu, x0, y0, w, h);                  // fondo blu
   }
-
-  for (const ch of chunks.values()) {
-    const wx0 = ch.cx * CHK, wy0 = ch.cy * CHK;
-    const i0 = Math.max(0, Math.floor((cx - W / 2 - wx0) / T)), i1 = Math.min(N - 1, Math.floor((cx + W / 2 - wx0) / T));
-    const j0 = Math.max(0, Math.floor((cy - H / 2 - wy0) / T)), j1 = Math.min(N - 1, Math.floor((cy + H / 2 - wy0) / T));
-    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
-      const sx = (wx0 + i * T - cx + W / 2) * dpr, sy = (wy0 + j * T - cy + H / 2) * dpr;
-      const x0 = Math.round(sx), y0 = Math.round(sy), w = Math.round(sx + T * dpr) - x0, h = Math.round(sy + T * dpr) - y0;
-      const Lc = ch.L[j * N + i];
-      const vb = useVar && hash2(ch.cx * N + i, ch.cy * N + j, CFG.SEED + 9) < 0.5;      // tessera a oppure b, scelta dalle coordinate
-      ctx.drawImage(vb ? A.mare1b : A.mare1, x0, y0, w, h);                              // base: acqua media
-      if (needB && Lc < 1.3) gB.drawImage(vb ? A.mare0b : A.mare0, x0, y0, w, h);        // basso, dove serve
-      if (needF && Lc > 0.7) gF.drawImage(vb ? A.mare2b : A.mare2, x0, y0, w, h);        // fondo, dove serve
-      if (needUM && Lc < 1.9) gUM.drawImage(A.mare1blu, x0, y0, w, h);                   // medio blu
-      if (needUF && Lc > 0.7) gUF.drawImage(A.mare2blu, x0, y0, w, h);                   // fondo blu
-    }
+  const mx = (gx0 * MS - MS / 2) * dpr - ox, my = (gy0 * MS - MS / 2) * dpr - oy, mw = gw * MS * dpr;
+  for (const l of wk.L) {
+    if (!l.need) continue;
+    l.mg.putImageData(l.img, 0, 0);
+    l.g.globalCompositeOperation = 'destination-in'; l.g.drawImage(l.m, 0, 0, gw, gw, mx, my, mw, mw);   // la maschera ingrandita è liscia
+    l.g.globalCompositeOperation = 'source-over';
+    g0.drawImage(l.lay, 0, 0);
   }
-  const mx = (gx0 * MS - MS / 2 - cx + W / 2) * dpr, my = (gy0 * MS - MS / 2 - cy + H / 2) * dpr, mw = gw * MS * dpr, mh = gh * MS * dpr;
-  const fin = [[gB, layB, mkB, mkImgB, needB], [gF, layF, mkF, mkImgF, needF], [gUM, layUM, mkUM, mkImgUM, needUM], [gUF, layUF, mkUF, mkImgUF, needUF]];
-  for (const [g, lay, mk, img, need] of fin) {
-    if (!g || !need) continue;
-    mk.getContext('2d').putImageData(img, 0, 0);
-    g.globalCompositeOperation = 'destination-in'; g.drawImage(mk, 0, 0, gw, gh, mx, my, mw, mh);   // la maschera ingrandita è liscia
-    g.globalCompositeOperation = 'source-over';
-    ctx.drawImage(lay, 0, 0);
+}
+function seaBlock(bx, by) {                 // blocco pronto (lo compone se manca o se è vecchio)
+  const key = bx + ',' + by; let blk = seaBlocks.get(key);
+  if (!blk) { const c = mkCanvas(SB, SB); blk = { c: c, g: c.getContext('2d', { alpha: false }), ver: 0 }; seaBlocks.set(key, blk); }
+  if (blk.ver !== seaVer) { renderSeaBlock(blk, bx, by); blk.ver = seaVer; }
+  return blk;
+}
+function drawSea(cx, cy) {
+  const t0 = performance.now();
+  const sig = dpr + '|' + CFG.MARE_BLU + '|' + CFG.MARE_VAR;
+  if (sig !== seaSig) { seaSig = sig; seaVer++; }                          // cambiata una scelta o la densità: i blocchi si rifanno pochi per volta
+  const S0x = Math.round((W / 2 - cx) * dpr), S0y = Math.round((H / 2 - cy) * dpr);   // dove cade l'origine del mondo sullo schermo (px dispositivo)
+  const bx0 = Math.floor(-S0x / SB), bx1 = Math.floor((-S0x + cv.width - 1) / SB);
+  const by0 = Math.floor(-S0y / SB), by1 = Math.floor((-S0y + cv.height - 1) / SB);
+  sctx.setTransform(1, 0, 0, 1, 0, 0);
+  let redo = 0;
+  for (let by = by0; by <= by1; by++) for (let bx = bx0; bx <= bx1; bx++) {
+    let blk = seaBlocks.get(bx + ',' + by);
+    if (!blk || blk.ver === 0) blk = seaBlock(bx, by);                     // mancante: serve subito
+    else if (blk.ver !== seaVer && redo < 3) { blk = seaBlock(bx, by); redo++; }   // vecchio: si mostra comunque, se ne rifanno 3 a fotogramma
+    sctx.drawImage(blk.c, S0x + bx * SB, S0y + by * SB);
   }
+  // anticipo: un blocco a fotogramma subito fuori dallo schermo, di preferenza nel verso di marcia (così non si compone nulla "a vista")
+  let best = null, bd = 1e9;
+  const mxc = (bx0 + bx1) / 2 + lead.x / SB * dpr * 2, myc = (by0 + by1) / 2 + lead.y / SB * dpr * 2;
+  for (let by = by0 - 1; by <= by1 + 1; by++) for (let bx = bx0 - 1; bx <= bx1 + 1; bx++) {
+    const blk = seaBlocks.get(bx + ',' + by);
+    if (blk && blk.ver === seaVer) continue;
+    const d = (bx - mxc) * (bx - mxc) + (by - myc) * (by - myc);
+    if (d < bd) { bd = d; best = [bx, by]; }
+  }
+  if (best && redo < 3) seaBlock(best[0], best[1]);
+  for (const [k] of seaBlocks) {                                           // scarica i blocchi lontani
+    const p = k.split(','), bx = +p[0], by = +p[1];
+    if (bx < bx0 - 2 || bx > bx1 + 2 || by < by0 - 2 || by > by1 + 2) seaBlocks.delete(k);
+  }
+  stats.msSea += ((performance.now() - t0) - stats.msSea) * 0.1;
 }
 
 // ---- profondità: tocchi di blu -------------------------------------------------------
@@ -407,17 +444,17 @@ function drawBlue(cx, cy) {
     d[k + 3] = blueAt(tx, ty, depthL(tx, ty, CFG.SEED), CFG.SEED) * CFG.BLUE_A * 255;
   }
   mkBl.getContext('2d').putImageData(mkBlImg, 0, 0);
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  sctx.setTransform(1, 0, 0, 1, 0, 0);
+  sctx.imageSmoothingEnabled = true; sctx.imageSmoothingQuality = 'high';
   const mx = (gx0 * MS - MS / 2 - cx + W / 2) * dpr, my = (gy0 * MS - MS / 2 - cy + H / 2) * dpr;
-  ctx.drawImage(mkBl, 0, 0, gw, gh, mx, my, gw * MS * dpr, gh * MS * dpr);
+  sctx.drawImage(mkBl, 0, 0, gw, gh, mx, my, gw * MS * dpr, gh * MS * dpr);
 }
 
 // ---- mare in movimento ------------------------------------------------------------
 // Due strati di sola LUCE (non di colore) fatti dalla tessera media di Muse, che scorrono in direzioni diverse
 // sopra il mare e si muovono con il mondo. Sovrapposti si «incrociano» come le onde. Provvisorio: la versione
 // definitiva sarà un disegno di Muse (onde/riflessi trasparenti da far scorrere).
-let flowCv = null, flowP1 = null, flowP2 = null;
+let flowCv = null, flowUrl = '';
 function makeFlow() {
   const S = A.mare1.width, c = mkCanvas(S, S), g = c.getContext('2d');
   g.drawImage(A.mare1, 0, 0);
@@ -430,41 +467,51 @@ function makeFlow() {
     p[k] = p[k + 1] = p[k + 2] = v; p[k + 3] = 255;
   }
   g.putImageData(d, 0, 0);
-  flowCv = c; flowP1 = ctx.createPattern(c, 'repeat'); flowP2 = ctx.createPattern(c, 'repeat');
+  flowCv = c; flowUrl = c.toDataURL('image/png');
 }
-function flowLayer(pat, S, alpha, k, rot, mir, vx, vy, cx, cy, t) {   // S = lato del disegno in px; mir = specchiato
-  if (alpha <= 0 || !pat.setTransform) return;
-  const P = S * k, co = Math.cos(rot), si = Math.sin(rot);
-  let ox = (W / 2 - cx + vx * t) * dpr, oy = (H / 2 - cy + vy * t) * dpr;     // origine del mondo + scorrimento
-  let lx = co * ox + si * oy, ly = -si * ox + co * oy;                        // riduzione al periodo: niente numeri enormi
-  lx = ((lx % P) + P) % P; ly = ((ly % P) + P) % P;
-  ox = co * lx - si * ly; oy = si * lx + co * ly;
-  const m = mir ? -1 : 1;
-  pat.setTransform(new DOMMatrix([m * k * co, m * k * si, -k * si, k * co, ox, oy]));
-  ctx.globalAlpha = alpha; ctx.fillStyle = pat; ctx.fillRect(0, 0, cv.width, cv.height);
-}
-let ondeP1 = null, ondeP2 = null;
-function drawFlow(cx, cy) {
+// Gli strati d'onda sono elementi DOM (non disegno nel canvas): una immagine che si ripete, spostata ogni fotogramma
+// con una semplice traslazione. Il telefono li muove con la GPU senza ridisegnarli: costo quasi nullo, a differenza
+// di 4 riempimenti a schermo intero nel canvas (~65 ms nel simulatore). Stanno tra il mare (sotto) e la zattera (sopra).
+// Provvisori di Claude: luce ricavata dalla tessera media, in modalità «overlay». Di Muse: l'overlay onde_overlay.png.
+const WV = [
+  { el: document.getElementById('wv0'), claude: true, mul: 1, vx: 9, vy: 3.5, a: () => CFG.FLOW_A1 },
+  { el: document.getElementById('wv1'), claude: true, mul: 1.7, vx: -5.5, vy: 7, a: () => CFG.FLOW_A2 },
+  { el: document.getElementById('wv2'), claude: false, mul: 1, vx: 9, vy: 3.5, a: () => CFG.ONDE_A1 },
+  { el: document.getElementById('wv3'), claude: false, mul: 1.35, vx: -6, vy: 4.5, a: () => CFG.ONDE_A2 }
+];
+let wvSig = '';
+function setupWaves() {
   const mode = CFG.MARE_ONDE;
-  if (mode === 0) return;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  const t = stats.t * CFG.FLOW_SPEED;
-  if (mode === 2 && A.onde) {               // overlay di Muse: 1024 px = 4 tessere = 256 px in gioco; due strati nella stessa orientazione (ruotarli fa un reticolo)
-    if (!ondeP1) { ondeP1 = ctx.createPattern(A.onde, 'repeat'); ondeP2 = ctx.createPattern(A.onde, 'repeat'); }
-    const S = A.onde.width, base = dpr * CFG.TILE * 4 / S;
-    flowLayer(ondeP1, S, CFG.ONDE_A1, base, 0, false, 9, 3.5, cx, cy, t);
-    flowLayer(ondeP2, S, CFG.ONDE_A2, base * 1.35, 0, false, -6, 4.5, cx, cy, t);
-    ctx.globalAlpha = 1; return;
+  for (const w of WV) {
+    const on = w.claude ? (mode === 1 || mode === 3) : (mode === 2 || mode === 3);
+    w.on = on && w.a() > 0 && (w.claude || !!A.onde);
+    if (!w.on) { w.el.style.display = 'none'; continue; }
+    if (w.claude && !flowCv) makeFlow();
+    w.per = CFG.TILE * (w.claude ? 1 : 4) * w.mul;                             // periodo in px CSS: tessera media = 1 tessera, onde di Muse = 4 tessere
+    const st = w.el.style;
+    st.width = Math.ceil(W + w.per) + 'px'; st.height = Math.ceil(H + w.per) + 'px';
+    st.backgroundImage = 'url(' + (w.claude ? flowUrl : A.onde.src) + ')';
+    st.backgroundSize = w.per + 'px ' + w.per + 'px';
+    st.mixBlendMode = w.claude ? 'overlay' : 'normal';
+    st.opacity = String(w.a());
+    st.display = 'block';
   }
-  if (CFG.FLOW_A1 <= 0 && CFG.FLOW_A2 <= 0) return;
-  if (!flowCv) makeFlow();
-  const base = dpr * CFG.TILE / flowCv.width;                                  // 1 px del PNG = 1/4 px di gioco
-  ctx.globalCompositeOperation = 'overlay';
-  flowLayer(flowP1, flowCv.width, CFG.FLOW_A1, base, 0, false, 9, 3.5, cx, cy, t);
-  flowLayer(flowP2, flowCv.width, CFG.FLOW_A2, base * 1.7, 0.45, false, -5.5, 7, cx, cy, t);
-  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+}
+function updateWaves(cx, cy) {
+  const t0 = performance.now();
+  const sig = CFG.MARE_ONDE + '|' + W + 'x' + H + '|' + CFG.FLOW_A1 + '|' + CFG.FLOW_A2 + '|' + CFG.ONDE_A1 + '|' + CFG.ONDE_A2;
+  if (sig !== wvSig) { wvSig = sig; setupWaves(); }
+  const t = stats.t * CFG.FLOW_SPEED;
+  for (const w of WV) {
+    if (!w.on) continue;
+    const P = w.per, ox = W / 2 - cx + w.vx * t, oy = H / 2 - cy + w.vy * t;   // origine del mondo + scorrimento, in px CSS
+    const tx = Math.round((((ox % P) + P) % P) * dpr) / dpr, ty = Math.round((((oy % P) + P) % P) * dpr) / dpr;   // sui pixel del dispositivo, come il mare
+    w.el.style.transform = 'translate3d(' + (tx - P) + 'px,' + (ty - P) + 'px,0)';
+  }
+  stats.msFlow += ((performance.now() - t0) - stats.msFlow) * 0.1;
 }
 
+let slickTmp = null;
 function drawSlicks(ox, oy) {               // chiazze quasi ferme: 2 fotogrammi lenti con dissolvenza, deriva minima
   const t = stats.t, F = [[A.olio1, A.olio2], [A.petr1, A.petr2]];
   const P = CFG.SLICK_PERIOD, fadeStart = 1 - CFG.SLICK_FADE / P, D = CFG.SLICK_DRIFT;
@@ -475,24 +522,41 @@ function drawSlicks(ox, oy) {               // chiazze quasi ferme: 2 fotogrammi
     const f = t / P + s.ph, k = Math.floor(f), u = f - k;
     const a = u <= fadeStart ? 0 : (u - fadeStart) / (1 - fadeStart), sm = a * a * (3 - 2 * a);   // 0 per un po', poi dissolvenza morbida
     const ba = sm > 0.5 ? 2 - 2 * sm : 1;                  // il fotogramma che esce si dissolve nella seconda metà: nessuno scatto al cambio
-    if (ba > 0) { ctx.globalAlpha = ba; ctx.drawImage(frames[k & 1], px - 64, py - 64, 128, 128); }
-    if (sm > 0) { ctx.globalAlpha = sm; ctx.drawImage(frames[(k + 1) & 1], px - 64, py - 64, 128, 128); }
-    ctx.globalAlpha = 1;
+    // il blu sta nel mare (sotto): la chiazza, che sta sopra, riceve lo stesso velo blu della zona in cui si trova
+    let tint = 0;
+    if (CFG.MARE_BLU >= 1) { const tx = s.x / CFG.TILE, ty = s.y / CFG.TILE; tint = blueAt(tx, ty, depthL(tx, ty, CFG.SEED), CFG.SEED) * CFG.BLUE_A; }
+    let g = ctx, X = px - 64, Y = py - 64;
+    if (tint > 0.02) {
+      const sz = Math.ceil(128 * dpr);
+      if (!slickTmp || slickTmp.width !== sz) slickTmp = mkCanvas(sz, sz);
+      g = slickTmp.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, 128, 128); X = 0; Y = 0;
+    }
+    if (ba > 0) { g.globalAlpha = ba; g.drawImage(frames[k & 1], X, Y, 128, 128); }
+    if (sm > 0) { g.globalAlpha = sm; g.drawImage(frames[(k + 1) & 1], X, Y, 128, 128); }
+    g.globalAlpha = 1;
+    if (g !== ctx) {
+      g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(' + CFG.BLUE_RGB[0] + ',' + CFG.BLUE_RGB[1] + ',' + CFG.BLUE_RGB[2] + ',' + tint.toFixed(3) + ')';
+      g.fillRect(0, 0, 128, 128); g.globalCompositeOperation = 'source-over';
+      ctx.drawImage(slickTmp, 0, 0, slickTmp.width, slickTmp.height, px - 64, py - 64, 128, 128);
+    }
   }
 }
 
 function render() {
+  const t0 = performance.now();
+  renderInner();
+  stats.msAll += ((performance.now() - t0) - stats.msAll) * 0.1;
+}
+function renderInner() {
   const cx = Math.round(cam.x * dpr) / dpr, cy = Math.round(cam.y * dpr) / dpr;   // camera sui pixel dello schermo
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = '#6f8f93'; ctx.fillRect(0, 0, cv.width, cv.height);
-  drawSea(cx, cy);
-  drawFlow(cx, cy);
+  drawSea(cx, cy);                          // canvas di sotto: mare
+  drawBlue(cx, cy);                         // (solo con «Blu: Claude») velo di blu sul mare
+  updateWaves(cx, cy);                      // strati d'onda (DOM) in mezzo
 
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);   // canvas di sopra: oggetti
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const ox = -cx + W / 2, oy = -cy + H / 2;
   drawSlicks(ox, oy);
-  drawBlue(cx, cy);                         // tocchi di blu sopra mare e chiazze, sotto scia e zattera
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   if (dbgMode === 2) {                      // griglia dei chunk
     ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([10, 8]);
@@ -543,9 +607,13 @@ function render() {
 const ft = []; let dbgTimer = 0;
 function updateDebug(dt) {
   dbgTimer += dt; if (dbgTimer < 0.25) return; dbgTimer = 0;
-  provaEl.style.display = dbgMode === 0 ? 'none' : 'flex';
+  const pd = dbgMode === 0 ? 'none' : 'flex';
+  if (provaEl.style.display !== pd) provaEl.style.display = pd;
   if (dbgMode === 0) { dbgEl.style.display = 'none'; return; }
   dbgEl.style.display = 'block';
+  const nowMs = performance.now();
+  if (nowMs - updateDebug.last < 250) return;                // il testo si rinfresca 4 volte al secondo
+  updateDebug.last = nowMs;
   let sum = 0, peak = 0; for (const f of ft) { sum += f; if (f > peak) peak = f; }
   const avg = ft.length ? sum / ft.length : 16.7;
   const txf = raft.x / CFG.TILE, tyf = raft.y / CFG.TILE, rc = raftChunk();
@@ -560,8 +628,10 @@ function updateDebug(dt) {
     'vel ' + (raft.speed / CFG.TILE).toFixed(1) + ' t/s  rotta ' + Math.round(((raft.h * 180 / Math.PI) % 360 + 360) % 360) + '°\n' +
     'percorso ' + Math.round(stats.dist / CFG.TILE) + ' tessere  ' + m + ':' + String(s).padStart(2, '0') + '\n' +
     'fps ' + Math.round(1000 / avg) + '  picco ' + peak.toFixed(1) + ' ms\n' +
+    'ms: mare ' + stats.msSea.toFixed(1) + '  onde ' + stats.msFlow.toFixed(1) + '  tutto ' + stats.msAll.toFixed(1) + '  blocchi ' + seaBlocks.size + '\n' +
     'chunk: ultimo ' + stats.genMs.toFixed(1) + ' ms  max ' + stats.genMax.toFixed(1) + ' ms';
 }
+updateDebug.last = 0;
 verEl.textContent = CFG.VERSION + ' · grafica Muse';
 let last = performance.now();
 function frame(now) {
@@ -586,13 +656,15 @@ setInterval(checkUpdate, 45000);
 
 { const rc = raftChunk(); ensureChunks(rc[0], rc[1]); }
 loadAssets().then(() => {
-  ready = true; loadEl.style.display = 'none';
+  ready = true;
+  resize(); try { render(); } catch (e) {}                   // compone subito il mare visibile, con la schermata «Carico» ancora sopra
+  loadEl.style.display = 'none';
   last = performance.now(); requestAnimationFrame(frame);
   setTimeout(() => { hintEl.style.opacity = 0; }, 9000);
 }).catch(err => { loadEl.textContent = 'Grafica non caricata: ' + err.message; });
 
 // per le prove automatiche
-window.DERIVA = { CFG, raft, cam, chunks, stats, stick, keys, update, render, ensureChunks, depthL, hash2, fbm, A, isReady: () => ready };
+window.DERIVA = { sv, CFG, raft, cam, chunks, stats, stick, keys, update, render, ensureChunks, depthL, hash2, fbm, A, isReady: () => ready };
 </script>
 </body>
 </html>
