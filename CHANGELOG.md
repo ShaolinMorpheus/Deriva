@@ -5,6 +5,7 @@ che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima 
 ## Progetto — 25 nov 2026, sera — nessun cambio al gioco: in gioco resta «v0.1b.8 · grafica Muse»
 - **Svolta isometrica (decisione dell'utente, ore 19:29).** Deriva passa dalla vista dall'alto alla vista **isometrica 2:1** (rombi, si vedono il sopra e due facce). La 4a/4b/4c dall'alto a tessere quadrate è scartata. Il mare dei Gruppi 1 e v4 resta come fondo continuo; zattera, relitti e protagonista andranno ridisegnati in isometrico.
 - **Ricevuti e controllati** i Gruppi iso 1 (pavimenti e bordi) e iso 2 (12 oggetti + anteprima completa a due parti): file e misure corretti. Da far rifare a Muse: alone magenta su derrick, serbatoio, baracca e container ocra; facce sud-ovest con geometria sbagliata (fanno una scalinata); scala e ancoraggi degli oggetti non dichiarati. Dettagli in `muse/2026-11-25-gruppo-iso-2-oggetti/RISPOSTA.md`.
+- **Correzioni v2 di Muse verificate** (21 file): alone magenta 0 su tutti i 12 oggetti, facce sud-ovest a spessore uniforme (65 px in ogni colonna), oggetti già in scala dell'anteprima (da ~24 MB a ~2 MB di PNG), misure tutte corrette. Via libera a zattera e protagonista isometrici (scala 1:1 con l'anteprima v2).
 - **Non montato nel gioco**: serve il motore a rombi (movimento, collisioni, ordine di disegno) e, per giocare, zattera e protagonista isometrici. Il gioco dall'alto v0.1b.8 resta intatto (`www/` e `www/storico/`).
 
 ## 0.1b.8 — 25 nov 2026 — in gioco si legge «v0.1b.8 · grafica Muse»
