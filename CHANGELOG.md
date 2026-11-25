@@ -2,6 +2,17 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.1b.7 — 25 nov 2026 — in gioco si legge «v0.1b.7 · grafica Muse»
+- **Montata la consegna v4 di Muse** (`gruppo-1-mare-v4`): overlay onde, tessere blu (medio e fondo), varianti b di basso/medio/fondo.
+- **Bottoni «prova mare»** in alto a destra (si vedono finché il pannello debug è acceso; toccando la versione in basso due volte spariscono). Ognuno cambia al tocco e la scelta resta salvata sul telefono:
+  - **Onde:** Muse → Claude (provvisorie) → spente. Muse = overlay di Muse in due strati nella stessa orientazione (ruotarli faceva un reticolo), scorrimento lento. Claude = il flusso provvisorio ricavato dalla tessera media.
+  - **Blu:** Muse → Claude → spento. Muse = tessere `mare_medio_blu` / `mare_fondo_blu` sfumate con le stesse zone del velo (stesso rumore fisso nel mondo). Claude = velo di colore in codice.
+  - **Varianti b:** sì / no. Alterna le tessere a e b (scelta dalle coordinate, stessa seed = stesso mare) per spezzare la ripetizione.
+- Di serie: tutto «Muse», varianti b «sì». In `CFG`: `MARE_ONDE`, `MARE_BLU`, `MARE_VAR`, `ONDE_A1` (0,8), `ONDE_A2` (0,55).
+- Visto nel simulatore: **blu Muse e blu Claude sono quasi uguali** (Muse ha mescolato nelle sue tessere lo stesso colore (56, 98, 142) al 35–40% che usavo io in codice). Le **varianti b** rompono bene la ripetizione a quadri del mare basso senza giunture visibili. L'**overlay** dà creste di luce naturali.
+- Costo nel simulatore software (non rappresentativo): tutto spento ~50 ms, versione Claude ~80–95 ms, versione Muse ~110 ms per fotogramma: **FPS veri da leggere sul telefono** con i bottoni nelle due combinazioni.
+- Versione precedente (v0.1b.6) conservata nella cronologia della repo.
+
 ## 0.1b.6 — 25 nov 2026 — in gioco si legge «v0.1b.6 · grafica Muse»
 - **Profondità: tocchi di blu** (richiesta dell'utente, «sempre nello stile di adesso»). Un velo di blu desaturato (56, 98, 142) con opacità variabile, da rumore fisso nel mondo (stessa seed = stesse zone ovunque).
 - Più frequente dove il mare è fondo: nel mondo di prova ~72% del mare fondo ha blu (più della metà forte), ~26% del medio (zone sparse), quasi nulla nel basso (si vede la sabbia). Sul totale ~30% del mare ha un tocco di blu.
