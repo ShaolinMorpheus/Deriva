@@ -2,6 +2,13 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.1b.3 — 25 nov 2026 — in gioco si legge «v0.1b.3 · grafica Muse»
+- **Chiazze v2 di Muse** (`gruppo-1-mare-v2`, approvate da Davide): colore intonato al mare, si riconoscono dai vortici e dalla superficie più liscia.
+- **Due tipi di chiazza:** «acqua» (leggera) e **«petrolio»** (più scura, per le zone inquinate). Nel mondo di prova ~1/3 sono petrolio. Vicino alla partenza ce n'è una per tipo: acqua in alto a destra, petrolio in basso a sinistra.
+- Il chunk ora ha una **lista** di chiazze (`slicks`) invece di una sola: servirà ai punti di interesse (v0.1c).
+- Le 4 chiazze v1 restano come storico nella cartella `muse/2026-11-25-gruppo-1-mare/`; nel gioco ci sono solo le v2.
+- Provato: nessun errore in console, mondo deterministico (stessa seed = stesse chiazze), test del mondo tutti OK.
+
 ## 0.1b.2 — 25 nov 2026 — in gioco si legge «v0.1b.2 · grafica Muse»
 - **Grafica di Muse montata** (Gruppo 1 mare, Gruppo 2 zattera, macchie d'olio). Niente più colori provvisori.
 - **Mare:** tre tessere (basso / medio / fondo). Il passaggio tra profondità è una sfumatura continua (maschere a bassa risoluzione, allineate al mondo): nessuna giunzione tra tessere né tra chunk.
