@@ -1,0 +1,2 @@
+faccia_legno_so.png.b64
+faccia_so.png.b64
