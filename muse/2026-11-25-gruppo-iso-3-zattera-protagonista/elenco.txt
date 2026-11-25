@@ -1,0 +1,9 @@
+anteprima_iso3.png.b64
+protagonista_iso_ne.png.b64
+protagonista_iso_no.png.b64
+protagonista_iso_se.png.b64
+protagonista_iso_so.png.b64
+zattera_iso_ne.png.b64
+zattera_iso_no.png.b64
+zattera_iso_se.png.b64
+zattera_iso_so.png.b64
