@@ -40,7 +40,7 @@
    =========================================================================== */
 //#region config
 const CFG = {
-  VERSION: 'v0.1b.3',
+  VERSION: 'v0.1b.4',
   SEED: 12345,            // seed fissa di prova: stesso mondo per tutti i test
   TILE: 64,               // px per tessera (in gioco). I PNG di Muse sono a 4x: 256 px
   CHUNK: 16,              // tessere per lato di un chunk (16x16 -> 1024 px)
@@ -48,6 +48,9 @@ const CFG = {
   DEPTH_SCALE: 14,        // dimensione delle "macchie" di profondità, in tessere
   SLICK_P: 0.12,          // probabilità di una chiazza di prova per chunk
   SLICK_PETROLIO: 0.35,   // di queste, quota di «petrolio» (le altre sono «acqua»)
+  SLICK_PERIOD: 1.8,      // secondi tra un fotogramma e l'altro della chiazza (2 fotogrammi, quasi ferma)
+  SLICK_FADE: 1.0,        // secondi di dissolvenza incrociata dentro quel periodo
+  SLICK_DRIFT: 1.5,       // deriva in px (0 = ferma del tutto)
   RAFT_SPEED: 4,          // tessere al secondo, a joystick tutto spinto
   RAFT_ACCEL: 6,          // tessere/s^2 in accelerazione
   RAFT_BRAKE: 9,          // tessere/s^2 quando rilasci il joystick (si ferma in ~0,5 s)
@@ -142,12 +145,8 @@ const ASSETS = {
   zattera: 'assets/zattera/zattera_base.png',     // prua = lato corto SINISTRO (dal LEGGIMI di Muse)
   olio1: 'assets/olio/macchia_olio_1.png',
   olio2: 'assets/olio/macchia_olio_2.png',
-  olio3: 'assets/olio/macchia_olio_3.png',
-  olio4: 'assets/olio/macchia_olio_4.png',
   petr1: 'assets/olio/macchia_petrolio_1.png',
-  petr2: 'assets/olio/macchia_petrolio_2.png',
-  petr3: 'assets/olio/macchia_petrolio_3.png',
-  petr4: 'assets/olio/macchia_petrolio_4.png'
+  petr2: 'assets/olio/macchia_petrolio_2.png'
 };
 const A = {};
 function loadAssets() {
@@ -331,15 +330,19 @@ function drawSea(cx, cy) {                  // mare: tessere di Muse; basso/fond
   }
 }
 
-function drawSlicks(ox, oy) {               // chiazze: 4 fotogrammi lenti (~2 al secondo) + deriva di pochi px
-  const t = stats.t, F = [[A.olio1, A.olio2, A.olio3, A.olio4], [A.petr1, A.petr2, A.petr3, A.petr4]];
+function drawSlicks(ox, oy) {               // chiazze quasi ferme: 2 fotogrammi lenti con dissolvenza, deriva minima
+  const t = stats.t, F = [[A.olio1, A.olio2], [A.petr1, A.petr2]];
+  const P = CFG.SLICK_PERIOD, fadeStart = 1 - CFG.SLICK_FADE / P, D = CFG.SLICK_DRIFT;
   for (const ch of chunks.values()) for (const s of ch.slicks) {
     const frames = F[s.kind];
-    const px = s.x + ox + Math.sin(t * 0.45 + s.ph) * 14, py = s.y + oy + Math.cos(t * 0.37 + s.ph * 1.3) * 9;
+    const px = s.x + ox + Math.sin(t * 0.2 + s.ph) * D, py = s.y + oy + Math.cos(t * 0.17 + s.ph * 1.3) * D * 0.7;
     if (px < -80 || py < -80 || px > W + 80 || py > H + 80) continue;
-    const f = t * 2 + s.ph, i = Math.floor(f) % 4, a = f - Math.floor(f);
-    ctx.drawImage(frames[i], px - 64, py - 64, 128, 128);      // dolce passaggio al fotogramma dopo
-    ctx.globalAlpha = a; ctx.drawImage(frames[(i + 1) % 4], px - 64, py - 64, 128, 128); ctx.globalAlpha = 1;
+    const f = t / P + s.ph, k = Math.floor(f), u = f - k;
+    const a = u <= fadeStart ? 0 : (u - fadeStart) / (1 - fadeStart), sm = a * a * (3 - 2 * a);   // 0 per un po', poi dissolvenza morbida
+    const ba = sm > 0.5 ? 2 - 2 * sm : 1;                  // il fotogramma che esce si dissolve nella seconda metà: nessuno scatto al cambio
+    if (ba > 0) { ctx.globalAlpha = ba; ctx.drawImage(frames[k & 1], px - 64, py - 64, 128, 128); }
+    if (sm > 0) { ctx.globalAlpha = sm; ctx.drawImage(frames[(k + 1) & 1], px - 64, py - 64, 128, 128); }
+    ctx.globalAlpha = 1;
   }
 }
 

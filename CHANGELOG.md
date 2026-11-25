@@ -2,6 +2,13 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.1b.4 — 25 nov 2026 — in gioco si legge «v0.1b.4 · grafica Muse»
+- **Chiazze quasi ferme** (v3 di Muse, richiesta dell'utente: «troppe animazioni, meno, più statiche ma che diano sempre l'effetto»).
+- 2 fotogrammi per tipo (acqua / petrolio) invece di 4. Cambio ogni **1,8 s** con dissolvenza morbida di **1 s**; il resto del tempo la chiazza è ferma.
+- **Deriva ridotta** da ±14 px a **±1,5 px**, lentissima. Tutto regolabile in `CFG`: `SLICK_PERIOD` (1,8), `SLICK_FADE` (1,0), `SLICK_DRIFT` (1,5; 0 = ferma del tutto).
+- Misurato in simulatore: la variazione media tra due istanti a 0,1 s resta sotto 1,5/255 per canale (nessuno scatto al cambio di fotogramma). Il giudizio vero è a occhio sul telefono.
+- Tolti dal gioco i fotogrammi 3 e 4 delle v2 (restano nella repo come storico).
+
 ## 0.1b.3 — 25 nov 2026 — in gioco si legge «v0.1b.3 · grafica Muse»
 - **Chiazze v2 di Muse** (`gruppo-1-mare-v2`, approvate da Davide): colore intonato al mare, si riconoscono dai vortici e dalla superficie più liscia.
 - **Due tipi di chiazza:** «acqua» (leggera) e **«petrolio»** (più scura, per le zone inquinate). Nel mondo di prova ~1/3 sono petrolio. Vicino alla partenza ce n'è una per tipo: acqua in alto a destra, petrolio in basso a sinistra.
