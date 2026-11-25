@@ -40,7 +40,7 @@
    =========================================================================== */
 //#region config
 const CFG = {
-  VERSION: 'v0.1b.5',
+  VERSION: 'v0.1b.6',
   SEED: 12345,            // seed fissa di prova: stesso mondo per tutti i test
   TILE: 64,               // px per tessera (in gioco). I PNG di Muse sono a 4x: 256 px
   CHUNK: 16,              // tessere per lato di un chunk (16x16 -> 1024 px)
@@ -51,6 +51,12 @@ const CFG = {
   SLICK_PERIOD: 1.2,      // secondi tra un fotogramma e l'altro della chiazza (2 fotogrammi)
   SLICK_FADE: 0.6,        // secondi di dissolvenza incrociata dentro quel periodo
   SLICK_DRIFT: 1.5,       // deriva in px (0 = ferma del tutto)
+  BLUE_A: 0.40,           // tocchi di mare azzurro/blu per dare profondità: opacità massima (0 = spenti)
+  BLUE_RGB: [56, 98, 142],// colore (desaturato, nel registro di Muse)
+  BLUE_SCALE: 16,         // grandezza delle zone, in tessere (più alto = zone più larghe)
+  BLUE_LO: 0.58,          // soglia di rumore da cui inizia il blu
+  BLUE_HI: 0.76,          // soglia a cui il blu è pieno
+  BLUE_DEPTH: 0.22,       // quanto il mare fondo ne ha di più (e il basso di meno)
   FLOW_A1: 0.30,          // mare in movimento: forza del 1° strato di luce scorrevole (0 = mare fermo)
   FLOW_A2: 0.24,          // idem, 2° strato (più largo, direzione diversa)
   FLOW_SPEED: 1.0,        // velocità dello scorrimento (1 = normale, 2 = doppia)
@@ -118,6 +124,11 @@ function slickAt(cx, cy, seed) {            // chiazze di PROVA (posizioni fisse
     ph: hash2(cx, cy, seed + 780) * 8,
     kind: hash2(cx, cy, seed + 781) < CFG.SLICK_PETROLIO ? 1 : 0
   }];
+}
+function blueAt(txf, tyf, depth, seed) {     // 0..1: quanto «blu di profondità» in un punto (coordinate di tessera). Deterministico, fisso nel mondo.
+  const n = fbm(txf / CFG.BLUE_SCALE, tyf / CFG.BLUE_SCALE, seed + 4242) + (depth - 1) * CFG.BLUE_DEPTH;
+  const u = Math.max(0, Math.min(1, (n - CFG.BLUE_LO) / (CFG.BLUE_HI - CFG.BLUE_LO)));
+  return u * u * (3 - 2 * u);
 }
 function makeChunk(cx, cy, seed) {          // dati di un chunk
   const N = CFG.CHUNK, L = new Float32Array(N * N);   // profondità al centro di ogni tessera (per il gioco)
@@ -333,6 +344,30 @@ function drawSea(cx, cy) {                  // mare: tessere di Muse; basso/fond
   }
 }
 
+// ---- profondità: tocchi di blu -------------------------------------------------------
+// Un velo di blu desaturato, con opacità variabile (rumore fisso nel mondo, più frequente dove il mare è fondo).
+// Stessa tecnica delle maschere del mare: un campione ogni MS px, ingrandito liscio. Provvisorio, in codice: la
+// versione definitiva può essere una tessera «fondo blu» di Muse.
+let mkBl = null, mkBlImg = null, mkBlW = 0, mkBlH = 0;
+function drawBlue(cx, cy) {
+  if (CFG.BLUE_A <= 0) return;
+  const T = CFG.TILE;
+  const gx0 = Math.floor((cx - W / 2) / MS) - 1, gy0 = Math.floor((cy - H / 2) / MS) - 1;
+  const gw = Math.ceil(W / MS) + 4, gh = Math.ceil(H / MS) + 4;
+  if (!mkBl || mkBlW !== gw || mkBlH !== gh) { mkBl = mkCanvas(gw, gh); mkBlImg = mkBl.getContext('2d').createImageData(gw, gh); mkBlW = gw; mkBlH = gh; }
+  const d = mkBlImg.data, c = CFG.BLUE_RGB;
+  for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
+    const tx = (gx0 + gx) * MS / T, ty = (gy0 + gy) * MS / T, k = (gy * gw + gx) * 4;
+    d[k] = c[0]; d[k + 1] = c[1]; d[k + 2] = c[2];
+    d[k + 3] = blueAt(tx, ty, depthL(tx, ty, CFG.SEED), CFG.SEED) * CFG.BLUE_A * 255;
+  }
+  mkBl.getContext('2d').putImageData(mkBlImg, 0, 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  const mx = (gx0 * MS - MS / 2 - cx + W / 2) * dpr, my = (gy0 * MS - MS / 2 - cy + H / 2) * dpr;
+  ctx.drawImage(mkBl, 0, 0, gw, gh, mx, my, gw * MS * dpr, gh * MS * dpr);
+}
+
 // ---- mare in movimento ------------------------------------------------------------
 // Due strati di sola LUCE (non di colore) fatti dalla tessera media di Muse, che scorrono in direzioni diverse
 // sopra il mare e si muovono con il mondo. Sovrapposti si «incrociano» come le onde. Provvisorio: la versione
@@ -399,6 +434,8 @@ function render() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const ox = -cx + W / 2, oy = -cy + H / 2;
   drawSlicks(ox, oy);
+  drawBlue(cx, cy);                         // tocchi di blu sopra mare e chiazze, sotto scia e zattera
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   if (dbgMode === 2) {                      // griglia dei chunk
     ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([10, 8]);

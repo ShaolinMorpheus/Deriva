@@ -2,6 +2,14 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.1b.6 — 25 nov 2026 — in gioco si legge «v0.1b.6 · grafica Muse»
+- **Profondità: tocchi di blu** (richiesta dell'utente, «sempre nello stile di adesso»). Un velo di blu desaturato (56, 98, 142) con opacità variabile, da rumore fisso nel mondo (stessa seed = stesse zone ovunque).
+- Più frequente dove il mare è fondo: nel mondo di prova ~72% del mare fondo ha blu (più della metà forte), ~26% del medio (zone sparse), quasi nulla nel basso (si vede la sabbia). Sul totale ~30% del mare ha un tocco di blu.
+- Disegnato **sopra** mare e chiazze (così anche le chiazze si intonano) e **sotto** scia e zattera.
+- Regolabile in `CFG`: `BLUE_A` (0,40; 0 = spento), `BLUE_RGB`, `BLUE_SCALE` (16 tessere = grandezza delle zone), `BLUE_LO`/`BLUE_HI` (quante zone), `BLUE_DEPTH` (quanto segue la profondità).
+- Provvisorio, in codice: la versione definitiva può essere una tessera «fondo blu» di Muse (richiesta nel `RISPOSTA.md` del Gruppo 1 v3).
+- Costo nel simulatore software: ~+20% del tempo di disegno (non rappresentativo): FPS veri da leggere sul telefono.
+
 ## 0.1b.5 — 25 nov 2026 — in gioco si legge «v0.1b.5 · grafica Muse»
 - **Chiazze più rapide** (richiesta dell'utente: così lenta sembrava il mare sotto a muoversi, non la chiazza). Cambio ogni **1,2 s** (era 1,8) con dissolvenza di **0,6 s** (era 1,0). Deriva invariata (±1,5 px). Regolabili in `CFG`: `SLICK_PERIOD`, `SLICK_FADE`, `SLICK_DRIFT`.
 - **Mare in movimento (PROVVISORIO, richiesta dell'utente: «lo vedo fermo, voglio che si veda che è in movimento»).** Fino alla v0.1b.4 il mare era fermo: dalla v0.1b.2 ho tolto le onde provvisorie e restavano solo le tessere statiche di Muse.
