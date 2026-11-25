@@ -36,4 +36,7 @@ Misure PNG = 4× la misura in gioco.
 ## Verdetto
 - Davide, 25 nov 2026: **Gruppo 2 approvato** («Sì, Gruppo 2 va bene — avanti col Gruppo 3»), limiti dichiarati accettati.
 
+## Nota di caricamento (25 nov 2026)
+I PNG di questa consegna sono saliti su GitHub come `nome.png.b64` (base64, una riga) con `elenco.txt` che dà l'ordine: l'invio diretto dei PNG non è passato. Per usarli: decodificare ogni `.b64` nel `nome.png` corrispondente. Contenuto identico ai PNG originali (verifica per hash fatta da Muse dopo l'invio).
+
 STATO: pronto

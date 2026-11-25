@@ -1,0 +1,5 @@
+anteprima_gruppo2.png.b64
+protagonista_alto.png.b64
+protagonista_remata.png.b64
+zattera_base.png.b64
+zattera_motore.png.b64
