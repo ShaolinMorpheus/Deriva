@@ -2,6 +2,11 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## Progetto — 26 nov 2026, notte — in gioco resta «v0.2c · prova isometrica» (pubblicata)
+- **Decisione dell'utente: la zattera avrà 16 viste (una ogni 22,5°)** per girare fluida a 360°, disegnate da Muse. Richiesta e guide pronte in `muse/2026-11-26-zattera-16-viste/` (`RICHIESTA.md`, `guide/guide_zattera_16_foglio.png` e 16 guide singole): tela fissa 704×512, centro impronta a (352,336), disposizione degli oggetti a bordo in coordinate fisse, luce sempre da in alto a sinistra. Consegna a lotti (4 → 8 → 16 viste). Sostituisce la zattera v2.
+- **Motore pronto** (non pubblicato, nessuna differenza visibile finché non arrivano i disegni): `CFG.RAFT_VIEWS` = 4 | 8 | 16 (anche `?viste=8|16` nell'indirizzo, per provare). Le viste stanno in `assets/iso/mezzi/zattera16/zattera_iso_00..15.png`; con 16 viste la sfumatura fra due viste vicine (22,5°) copre tutto l'intervallo; ombra e schiuma seguono la vista. Provato con un set finto: 4/8/16 viste senza errori, ~2 ms per fotogramma.
+- Da fare quando arriva il lotto A: montarlo (8 viste = lotti A+B), verifica di coerenza degli oggetti fra viste vicine, poi il lotto C.
+
 ## 0.2c — 26 nov 2026 — PROVA ISOMETRICA: in gioco si legge «v0.2c · prova isometrica · grafica Muse»
 - **Ombra della zattera corretta.** Nella v0.2b l'ombra ruotava con l'angolo continuo mentre il disegno ha solo 4 viste: l'ombra girava e la zattera no, e sembrava che volasse. Ora ombra e schiuma sono una per ciascuna delle 4 viste (stessa impronta del disegno) e cambiano insieme alla zattera con la stessa sfumatura. Ombra più stretta e a contatto con l'acqua, più un filo di schiuma sul bordo.
 - Resta il limite delle 4 viste (vedi 0.2b): rotazione fluida solo con più viste.
