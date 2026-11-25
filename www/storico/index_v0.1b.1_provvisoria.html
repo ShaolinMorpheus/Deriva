@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Deriva</title>
+<style>
+  html,body{margin:0;height:100%;background:#12303a;overflow:hidden;overscroll-behavior:none;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+  #ver{position:fixed;left:0;right:0;bottom:calc(4px + env(safe-area-inset-bottom));text-align:center;
+    font:600 12px/1 system-ui,sans-serif;color:#eaf4f1;opacity:.85;text-shadow:0 1px 2px #000b;padding:10px 0;cursor:pointer}
+  #dbg{position:fixed;left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));
+    font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#eaf4f1;background:#0a1c2299;padding:6px 8px;
+    border-radius:6px;white-space:pre;pointer-events:none}
+  #rot{position:fixed;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:#12303af2;color:#eaf4f1;text-align:center;font:600 18px/1.4 system-ui,sans-serif}
+  #rot b{font-size:56px;line-height:1;margin-bottom:12px;font-weight:400}
+  #hint{position:fixed;left:0;right:0;top:34%;text-align:center;font:600 15px/1.3 system-ui,sans-serif;color:#fff;
+    text-shadow:0 1px 3px #000c;pointer-events:none;transition:opacity 1.2s}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="dbg"></div>
+<div id="hint">Tocca a sinistra e trascina per navigare</div>
+<div id="rot"><b>⟳</b>Ruota il telefono<br>in orizzontale</div>
+<div id="ver"></div>
+<script>
+'use strict';
+/* ===========================================================================
+   DERIVA — prototipo. Tutti i numeri da regolare stanno qui, in CFG.
+   =========================================================================== */
+//#region config
+const CFG = {
+  VERSION: 'v0.1b.1',
+  SEED: 12345,            // seed fissa di prova: stesso mondo per tutti i test
+  TILE: 64,               // px per tessera
+  CHUNK: 16,              // tessere per lato di un chunk (16x16 -> 1024 px)
+  TEXELS: 64,             // campioni di colore per lato chunk (provvisorio: 4 per tessera)
+  ACTIVE_R: 1,            // raggio dei chunk attivi: 1 -> 3x3
+  DEPTH_SCALE: 14,        // dimensione delle "macchie" di profondità, in tessere
+  RAFT_SPEED: 4,          // tessere al secondo, a joystick tutto spinto
+  RAFT_ACCEL: 6,          // tessere/s^2 in accelerazione
+  RAFT_BRAKE: 9,          // tessere/s^2 quando rilasci il joystick (si ferma in ~0,5 s)
+  RAFT_TURN: 3.4,         // rad/s di virata
+  STICK_R: 58,            // raggio del joystick, in px CSS
+  STICK_DEAD: 0.12,       // zona morta (0-1)
+  JOY_ZONE: 0.55,         // il joystick nasce solo nel 55% sinistro dello schermo (a destra: azioni)
+  LOOKAHEAD: 0.45         // la camera guarda avanti di tot secondi di corsa (0 = camera fissa sulla zattera)
+};
+//#endregion config
+
+/* ===========================================================================
+   MONDO — solo funzioni pure su interi/numeri: niente Math.random, niente seno.
+   Stessa seed + stesse coordinate = stesso risultato su ogni telefono.
+   =========================================================================== */
+//#region world
+function hash2(x, y, s) {
+  let h = (Math.imul(x | 0, 0x27d4eb2d) + Math.imul(y | 0, 0x165667b1) + Math.imul(s | 0, 0x9e3779b1)) | 0;
+  h = Math.imul(h ^ (h >>> 15), 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;            // [0,1)
+}
+function vnoise(x, y, s) {                  // value noise, interpolazione morbida
+  const xi = Math.floor(x), yi = Math.floor(y);
+  const fx = x - xi, fy = y - yi;
+  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+  const a = hash2(xi, yi, s), b = hash2(xi + 1, yi, s), c = hash2(xi, yi + 1, s), d = hash2(xi + 1, yi + 1, s);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y, s) {                     // 3 ottave
+  let sum = 0, amp = 0.5, f = 1, norm = 0;
+  for (let o = 0; o < 3; o++) {
+    sum += amp * vnoise(x * f + o * 17.3, y * f - o * 9.1, s + o * 7919);
+    norm += amp; amp *= 0.5; f *= 2.03;
+  }
+  return sum / norm;                        // ~[0,1]
+}
+const DEPTH_T = [0.36, 0.46, 0.55, 0.66];
+function levelFromNoise(d) {                // 0 = basso, 1 = medio, 2 = fondo (continuo)
+  const t = DEPTH_T;
+  if (d <= t[0]) return 0;
+  if (d < t[1]) return (d - t[0]) / (t[1] - t[0]);
+  if (d <= t[2]) return 1;
+  if (d < t[3]) return 1 + (d - t[2]) / (t[3] - t[2]);
+  return 2;
+}
+function depthL(txf, tyf, seed) {           // profondità a coordinate di tessera (anche frazionarie)
+  return levelFromNoise(fbm(txf / CFG.DEPTH_SCALE, tyf / CFG.DEPTH_SCALE, seed));
+}
+function makeChunk(cx, cy, seed) {          // dati di un chunk: profondità al centro di ogni tessera
+  const N = CFG.CHUNK, L = new Float32Array(N * N);
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) L[j * N + i] = depthL(cx * N + i + 0.5, cy * N + j + 0.5, seed);
+  return { cx: cx, cy: cy, L: L, canvas: null };
+}
+//#endregion world
+
+/* ===========================================================================
+   GIOCO
+   =========================================================================== */
+const cv = document.getElementById('game');
+const ctx = cv.getContext('2d', { alpha: false });
+const dbgEl = document.getElementById('dbg');
+const verEl = document.getElementById('ver');
+const hintEl = document.getElementById('hint');
+let W = 0, H = 0, dpr = 1;
+
+const CHK = CFG.TILE * CFG.CHUNK;           // lato chunk in px mondo (1024)
+const TS = CHK / CFG.TEXELS;                // px mondo per campione (16)
+
+// ---- stato ----------------------------------------------------------------
+const raft = { x: CHK / 2, y: CHK / 2, h: 0, speed: 0 };
+const cam = { x: raft.x, y: raft.y };
+const lead = { x: 0, y: 0 };                // anticipo della camera nella direzione di marcia
+let portrait = false;                       // il gioco è pensato in orizzontale
+const ctrl = { mag: 0, ang: 0 };
+const stick = { id: null, ox: 0, oy: 0, x: 0, y: 0, active: false };
+const keys = { left: 0, right: 0, up: 0, down: 0 };
+const trail = [];
+const chunks = new Map();
+const stats = { t: 0, dist: 0, genMs: 0, genMax: 0, loaded: 0, fps: 0, peak: 0 };
+let trailTimer = 0;
+let dbgMode = 1;                            // 0 nascosto, 1 info, 2 info + griglia chunk
+
+// ---- ridimensionamento -------------------------------------------------------
+function resize() {
+  dpr = Math.min(4, window.devicePixelRatio || 1);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  portrait = H > W;
+  document.getElementById('rot').style.display = portrait ? 'flex' : 'none';
+  if (portrait) { stick.id = null; stick.active = false; }
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ---- chunk -------------------------------------------------------------------
+const SEA_COL = [[120, 176, 170], [72, 130, 150], [38, 82, 112]];
+function buildChunkCanvas(ch) {
+  const M = CFG.TEXELS + 2;                 // 1 campione di bordo per lato: niente giunture tra chunk
+  const c = document.createElement('canvas'); c.width = c.height = M;
+  const g = c.getContext('2d');
+  const im = g.createImageData(M, M), d = im.data;
+  const ox = ch.cx * CHK, oy = ch.cy * CHK;
+  for (let j = 0; j < M; j++) for (let i = 0; i < M; i++) {
+    const wx = ox + (i - 1 + 0.5) * TS, wy = oy + (j - 1 + 0.5) * TS;
+    const L = depthL(wx / CFG.TILE, wy / CFG.TILE, CFG.SEED);
+    const lum = 1 + 0.07 * (vnoise(wx / 230, wy / 230, CFG.SEED + 5) - 0.5) * 2;
+    const a = L < 1 ? SEA_COL[0] : SEA_COL[1], b = L < 1 ? SEA_COL[1] : SEA_COL[2], f = L < 1 ? L : L - 1;
+    const k = (j * M + i) * 4;
+    d[k]   = Math.max(0, Math.min(255, (a[0] + (b[0] - a[0]) * f) * lum));
+    d[k+1] = Math.max(0, Math.min(255, (a[1] + (b[1] - a[1]) * f) * lum));
+    d[k+2] = Math.max(0, Math.min(255, (a[2] + (b[2] - a[2]) * f) * lum));
+    d[k+3] = 255;
+  }
+  g.putImageData(im, 0, 0);
+  ch.canvas = c;
+}
+function chunkKey(cx, cy) { return cx + ',' + cy; }
+function ensureChunks(cx, cy) {
+  const R = CFG.ACTIVE_R, keep = new Set();
+  for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+    const k = chunkKey(cx + dx, cy + dy); keep.add(k);
+    if (!chunks.has(k)) {
+      const t0 = performance.now();
+      const ch = makeChunk(cx + dx, cy + dy, CFG.SEED);
+      buildChunkCanvas(ch);
+      chunks.set(k, ch);
+      stats.genMs = performance.now() - t0;
+      stats.genMax = Math.max(stats.genMax, stats.genMs);
+    }
+  }
+  for (const k of Array.from(chunks.keys())) if (!keep.has(k)) chunks.delete(k);
+  stats.loaded = chunks.size;
+}
+function raftChunk() { return [Math.floor(raft.x / CHK), Math.floor(raft.y / CHK)]; }
+
+// ---- grafica provvisoria -------------------------------------------------------
+function makeWaves(S, dens, ph, tilt) {     // tessera di onde, ripetibile; solo linee lunghe, niente ovali
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d'), im = g.createImageData(S, S), d = im.data, TAU = Math.PI * 2;
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const u = x / S * TAU, v = y / S * TAU;
+    const w = Math.sin(v * dens + tilt * u + 0.9 * Math.sin(u * 2 + ph) + 0.6 * Math.sin(u * 5 - ph * 1.3) + 0.35 * Math.sin(u * 3 + v + ph));
+    const a = Math.max(0, (w - 0.84) / 0.16);
+    const k = (y * S + x) * 4;
+    d[k] = 236; d[k+1] = 246; d[k+2] = 243; d[k+3] = Math.round(a * a * 230);
+  }
+  g.putImageData(im, 0, 0);
+  return c;
+}
+function makeRaftSprite() {                 // zattera provvisoria 192x128 px di gioco, disegnata a 4x
+  const k = 4, w = 192, h = 128;
+  const c = document.createElement('canvas'); c.width = w * k; c.height = h * k;
+  const g = c.getContext('2d'); g.scale(k, k); g.lineJoin = 'round';
+  const hull = () => { g.beginPath(); g.moveTo(8, 16); g.lineTo(148, 16); g.lineTo(186, 44); g.lineTo(186, 84); g.lineTo(148, 112); g.lineTo(8, 112); g.closePath(); };
+  g.save(); hull(); g.clip();
+  const cols = ['#8f5e36', '#7e5030', '#98683c', '#85572f'];
+  for (let i = 0; i < 7; i++) { g.fillStyle = cols[i % 4]; g.fillRect(0, 16 + i * 13.7, 200, 13.7); }
+  g.strokeStyle = 'rgba(46,28,14,.75)'; g.lineWidth = 1.1;
+  for (let i = 1; i < 7; i++) { g.beginPath(); g.moveTo(0, 16 + i * 13.7); g.lineTo(200, 16 + i * 13.7); g.stroke(); }
+  g.fillStyle = 'rgba(60,36,18,.5)'; for (const x of [34, 96, 150]) g.fillRect(x, 16, 5, 96);
+  g.restore();
+  g.save(); hull(); g.strokeStyle = '#c2a86a'; g.lineWidth = 3.2; g.setLineDash([5, 3]); g.stroke(); g.restore();
+  const barrel = (x, y, r) => {
+    const gr = g.createRadialGradient(x - r * .3, y - r * .3, r * .1, x, y, r);
+    gr.addColorStop(0, '#c8673c'); gr.addColorStop(1, '#8e3d22');
+    g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+    g.strokeStyle = '#d98a58'; g.lineWidth = 1.6; g.beginPath(); g.arc(x, y, r * .72, 0, 7); g.stroke();
+  };
+  barrel(34, 11, 11); barrel(34, 117, 11); barrel(118, 11, 11); barrel(118, 117, 11);
+  g.fillStyle = '#c0a76c'; g.fillRect(62, 38, 52, 26);        // tenda: due falde
+  g.fillStyle = '#a98f56'; g.fillRect(62, 64, 52, 26);
+  g.fillStyle = '#7d6638'; g.fillRect(62, 63, 52, 2);
+  g.fillStyle = '#5d646a'; g.fillRect(-2, 50, 18, 28);        // motore a poppa
+  g.fillStyle = '#3d4348'; g.fillRect(-6, 58, 9, 12);
+  g.fillStyle = '#b3261e'; g.fillRect(20, 88, 13, 15);        // tanica
+  g.fillStyle = '#e0584c'; g.fillRect(22, 90, 5, 4);
+  g.fillStyle = '#3a2a1a'; g.beginPath(); g.arc(134, 64, 6, 0, 7); g.fill();   // timone
+  g.strokeStyle = '#6b4a2a'; g.lineWidth = 2; g.beginPath(); g.arc(134, 64, 10, 0, 7); g.stroke();
+  return c;
+}
+const raftSprite = makeRaftSprite();
+const wavesA = ctx.createPattern(makeWaves(512, 8, 0.7, 0), 'repeat');
+const wavesB = ctx.createPattern(makeWaves(512, 5, 2.1, 1), 'repeat');
+
+// ---- comandi -------------------------------------------------------------------
+cv.addEventListener('pointerdown', e => {
+  if (stick.id !== null || portrait || e.clientX > W * CFG.JOY_ZONE) return;
+  stick.id = e.pointerId; stick.ox = stick.x = e.clientX; stick.oy = stick.y = e.clientY; stick.active = true;
+  try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+  hintEl.style.opacity = 0;
+  e.preventDefault();
+});
+cv.addEventListener('pointermove', e => { if (e.pointerId === stick.id) { stick.x = e.clientX; stick.y = e.clientY; e.preventDefault(); } });
+const stickEnd = e => { if (e.pointerId === stick.id) { stick.id = null; stick.active = false; } };
+cv.addEventListener('pointerup', stickEnd);
+cv.addEventListener('pointercancel', stickEnd);
+cv.addEventListener('contextmenu', e => e.preventDefault());
+const KEYMAP = { ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', ArrowUp: 'up', w: 'up', ArrowDown: 'down', s: 'down' };
+window.addEventListener('keydown', e => { const k = KEYMAP[e.key]; if (k) { keys[k] = 1; hintEl.style.opacity = 0; e.preventDefault(); } });
+window.addEventListener('keyup', e => { const k = KEYMAP[e.key]; if (k) keys[k] = 0; });
+verEl.addEventListener('pointerdown', e => { dbgMode = (dbgMode + 1) % 3; e.stopPropagation(); e.preventDefault(); });
+
+// ---- aggiornamento ---------------------------------------------------------------
+function angDiff(a, b) { let d = a - b; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return d; }
+function update(dt) {
+  stats.t += dt;
+  let mag = 0, ang = raft.h;
+  if (stick.active) {
+    const dx = stick.x - stick.ox, dy = stick.y - stick.oy, dist = Math.hypot(dx, dy);
+    mag = Math.min(1, dist / CFG.STICK_R);
+    if (mag < CFG.STICK_DEAD) mag = 0; else { mag = (mag - CFG.STICK_DEAD) / (1 - CFG.STICK_DEAD); ang = Math.atan2(dy, dx); }
+  } else {
+    const kx = keys.right - keys.left, ky = keys.down - keys.up;
+    if (kx || ky) { mag = 1; ang = Math.atan2(ky, kx); }
+  }
+  ctrl.mag = mag; ctrl.ang = ang;
+
+  const maxV = CFG.RAFT_SPEED * CFG.TILE;
+  let align = 1;
+  if (mag > 0) {
+    const diff = angDiff(ang, raft.h), maxTurn = CFG.RAFT_TURN * dt;
+    raft.h += Math.max(-maxTurn, Math.min(maxTurn, diff));
+    align = 0.4 + 0.6 * Math.max(0, Math.cos(Math.min(Math.abs(diff), Math.PI / 2)));
+  }
+  const target = mag * maxV * align;
+  if (target > raft.speed) raft.speed = Math.min(target, raft.speed + CFG.RAFT_ACCEL * CFG.TILE * dt);
+  else raft.speed = Math.max(target, raft.speed - CFG.RAFT_BRAKE * CFG.TILE * dt);
+
+  const step = raft.speed * dt;
+  raft.x += Math.cos(raft.h) * step; raft.y += Math.sin(raft.h) * step;
+  stats.dist += step;
+  const lk = CFG.LOOKAHEAD * raft.speed, kl = 1 - Math.exp(-3 * dt);
+  lead.x += (Math.cos(raft.h) * lk - lead.x) * kl; lead.y += (Math.sin(raft.h) * lk - lead.y) * kl;
+  cam.x = raft.x + lead.x; cam.y = raft.y + lead.y;
+
+  const rc = raftChunk(); ensureChunks(rc[0], rc[1]);
+
+  trailTimer += dt;
+  if (trailTimer >= 0.05) {
+    trailTimer = 0;
+    if (raft.speed > 0.4 * CFG.TILE) trail.push({ x: raft.x - Math.cos(raft.h) * 78, y: raft.y - Math.sin(raft.h) * 78, h: raft.h, t: stats.t, s: raft.speed / maxV });
+    while (trail.length && stats.t - trail[0].t > 2) trail.shift();
+  }
+}
+
+// ---- disegno -----------------------------------------------------------------------
+function render() {
+  const cx = Math.round(cam.x * dpr) / dpr, cy = Math.round(cam.y * dpr) / dpr;   // camera sui pixel dello schermo
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#26516c'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+
+  // 1) mare: un blocco per chunk, ritagliato sui pixel interi (nessuna giuntura)
+  for (const ch of chunks.values()) {
+    const sx0 = (ch.cx * CHK - cx + W / 2) * dpr, sy0 = (ch.cy * CHK - cy + H / 2) * dpr;
+    const x0 = Math.round(sx0), y0 = Math.round(sy0);
+    const x1 = Math.round(sx0 + CHK * dpr), y1 = Math.round(sy0 + CHK * dpr);
+    if (x1 < 0 || y1 < 0 || x0 > cv.width || y0 > cv.height) continue;
+    const sc = (x1 - x0) / CHK, scy = (y1 - y0) / CHK, M = CFG.TEXELS + 2;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, y1 - y0); ctx.clip();
+    ctx.drawImage(ch.canvas, 0, 0, M, M, x0 - TS * sc, y0 - TS * scy, M * TS * sc, M * TS * scy);
+    ctx.restore();
+  }
+
+  // 2) onde in sovrimpressione: ferme sul mondo + una deriva lenta
+  const t = stats.t;
+  const layer = (pat, alpha, ddx, ddy) => {
+    const tx = ((((-cx + W / 2 + ddx * t) % 256) + 256) % 256) - 256;
+    const ty = ((((-cy + H / 2 + ddy * t) % 256) + 256) % 256) - 256;
+    ctx.setTransform(dpr * 0.5, 0, 0, dpr * 0.5, tx * dpr, ty * dpr);
+    ctx.globalAlpha = alpha; ctx.fillStyle = pat;
+    ctx.fillRect(0, 0, (W + 256) * 2, (H + 256) * 2);
+    ctx.globalAlpha = 1;
+  };
+  layer(wavesA, 0.16, 7, 3);
+  layer(wavesB, 0.10, -5, 4);
+
+  // 3) tutto il resto in px CSS
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ox = -cx + W / 2, oy = -cy + H / 2;
+
+  if (dbgMode === 2) {                      // griglia dei chunk
+    ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.5; ctx.setLineDash([10, 8]);
+    ctx.font = '12px ui-monospace,monospace'; ctx.fillStyle = 'rgba(255,255,255,.85)';
+    for (const ch of chunks.values()) {
+      ctx.strokeRect(ch.cx * CHK + ox, ch.cy * CHK + oy, CHK, CHK);
+      ctx.fillText(ch.cx + ',' + ch.cy, ch.cx * CHK + ox + 8, ch.cy * CHK + oy + 18);
+    }
+    ctx.setLineDash([]);
+  }
+
+  // scia
+  ctx.lineCap = 'round';
+  for (let i = 1; i < trail.length; i++) {
+    const a = trail[i - 1], b = trail[i], age = (t - b.t) / 2, fade = Math.max(0, 1 - age);
+    const spread = 6 + age * 26, nx = -Math.sin(b.h), ny = Math.cos(b.h), nxa = -Math.sin(a.h), nya = Math.cos(a.h);
+    const spreadA = 6 + ((t - a.t) / 2) * 26;
+    ctx.strokeStyle = 'rgba(236,246,243,' + (0.5 * fade * Math.min(1, b.s + 0.3)).toFixed(3) + ')';
+    ctx.lineWidth = 2 + 4 * fade;
+    for (const sgn of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(a.x + ox + nxa * spreadA * sgn, a.y + oy + nya * spreadA * sgn);
+      ctx.lineTo(b.x + ox + nx * spread * sgn, b.y + oy + ny * spread * sgn);
+      ctx.stroke();
+    }
+  }
+
+  // zattera: ombra morbida (luce da in alto a sinistra) + sprite ruotato
+  const rx = raft.x + ox, ry = raft.y + oy;
+  ctx.save(); ctx.translate(rx + 7, ry + 9); ctx.rotate(raft.h);
+  ctx.fillStyle = 'rgba(8,24,34,.28)';
+  ctx.beginPath(); ctx.moveTo(-88, -48); ctx.lineTo(52, -48); ctx.lineTo(90, -20); ctx.lineTo(90, 20); ctx.lineTo(52, 48); ctx.lineTo(-88, 48); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.save(); ctx.translate(rx, ry); ctx.rotate(raft.h);
+  ctx.drawImage(raftSprite, -96, -64, 192, 128);
+  ctx.restore();
+
+  // joystick
+  if (stick.active) {
+    const dx = stick.x - stick.ox, dy = stick.y - stick.oy, dist = Math.hypot(dx, dy), k = dist > CFG.STICK_R ? CFG.STICK_R / dist : 1;
+    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(stick.ox, stick.oy, CFG.STICK_R, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.55)';
+    ctx.beginPath(); ctx.arc(stick.ox + dx * k, stick.oy + dy * k, 22, 0, 7); ctx.fill();
+  }
+}
+
+// ---- debug e ciclo --------------------------------------------------------------------
+const ft = []; let dbgTimer = 0;
+function updateDebug(dt) {
+  dbgTimer += dt; if (dbgTimer < 0.25) return; dbgTimer = 0;
+  if (dbgMode === 0) { dbgEl.style.display = 'none'; return; }
+  dbgEl.style.display = 'block';
+  let sum = 0, peak = 0; for (const f of ft) { sum += f; if (f > peak) peak = f; }
+  const avg = ft.length ? sum / ft.length : 16.7;
+  const txf = raft.x / CFG.TILE, tyf = raft.y / CFG.TILE, rc = raftChunk();
+  const L = depthL(txf, tyf, CFG.SEED);
+  const lvl = L < 0.5 ? 'basso' : L < 1.5 ? 'medio' : 'fondo';
+  const m = Math.floor(stats.t / 60), s = Math.floor(stats.t % 60);
+  dbgEl.textContent =
+    'Deriva ' + CFG.VERSION + '  seed ' + CFG.SEED + '\n' +
+    'tessera ' + Math.floor(txf) + ', ' + Math.floor(tyf) + '\n' +
+    'chunk ' + rc[0] + ', ' + rc[1] + '  attivi ' + stats.loaded + '\n' +
+    'mare ' + lvl + '  L=' + L.toFixed(2) + '\n' +
+    'vel ' + (raft.speed / CFG.TILE).toFixed(1) + ' t/s  rotta ' + Math.round(((raft.h * 180 / Math.PI) % 360 + 360) % 360) + '°\n' +
+    'percorso ' + Math.round(stats.dist / CFG.TILE) + ' tessere  ' + m + ':' + String(s).padStart(2, '0') + '\n' +
+    'fps ' + Math.round(1000 / avg) + '  picco ' + peak.toFixed(1) + ' ms\n' +
+    'chunk: ultimo ' + stats.genMs.toFixed(1) + ' ms  max ' + stats.genMax.toFixed(1) + ' ms';
+}
+verEl.textContent = CFG.VERSION + ' · grafica provvisoria';
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000)); last = now;
+  if (window.innerWidth !== W || window.innerHeight !== H) resize();     // più affidabile dell'evento in un riquadro
+  if (!portrait) { update(dt); render(); }
+  if (frame.prev) { ft.push(now - frame.prev); if (ft.length > 120) ft.shift(); }   // tempo tra un fotogramma e l'altro
+  frame.prev = now;
+  updateDebug(dt);
+  requestAnimationFrame(frame);
+}
+{ const rc = raftChunk(); ensureChunks(rc[0], rc[1]); }
+requestAnimationFrame(frame);
+setTimeout(() => { hintEl.style.opacity = 0; }, 9000);
+
+// per le prove automatiche
+window.DERIVA = { CFG, raft, cam, chunks, stats, stick, keys, update, render, ensureChunks, depthL, hash2, fbm };
+</script>
+</body>
+</html>

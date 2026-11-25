@@ -1,0 +1,14 @@
+{
+  "appId": "it.deriva.game",
+  "appName": "Deriva",
+  "webDir": "www",
+  "backgroundColor": "#16323a",
+  "android": {
+    "allowMixedContent": false
+  },
+  "server": {
+    "url": "https://shaolinmorpheus.github.io/Deriva/",
+    "cleartext": false,
+    "errorPath": "offline.html"
+  }
+}
