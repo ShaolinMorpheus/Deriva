@@ -20,6 +20,8 @@ Oggetti grandi separati, in vista isometrica 2:1, dai disegni approvati delle 4 
 | `anteprima_iso2.png` | — | — | Anteprima prima parte: piattaforma 8×6 coi 4 oggetti originali |
 | `anteprima_iso2_completa.png` | — | — | Anteprima completa: piattaforma 13×9 assemblata coi pezzi iso 1, TUTTI gli oggetti del gruppo piazzati con l'impronta intera dentro la piattaforma (più protagonista 3/4 di prova, in attesa del protagonista iso) |
 
+Nota invio: sul repo `anteprima_iso2_completa.png` sta in due parti, `anteprima_iso2_completa.png.b64.1` e `anteprima_iso2_completa.png.b64.2` (il .b64 unico da 7,41 MB supera il limite di invio): concatenare le due parti in ordine e decodificare il base64 per ricostruire il PNG originale a piena risoluzione, bit per bit.
+
 ## Controlli fatti
 - Oggetti ritagliati dal fondo magenta e verificati sul mare vero e sulla piattaforma: bordi puliti, niente alone magenta (despill per tonalità + riempimento RGB delle zone trasparenti dal vicino opaco: anche ridimensionando, dai pixel trasparenti non riaffiora magenta). Residuo magenta misurato: 0 pixel su tutti i file della seconda parte.
 - I container ruggine e verde sono modifiche del disegno dell'ocra: forma, angolazione e dimensioni coincidono (1607/1606 px di larghezza contro 1610).
