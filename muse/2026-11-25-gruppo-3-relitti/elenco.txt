@@ -1,0 +1,7 @@
+anteprima_gruppo3.png.b64
+barile_petrolio.png.b64
+cassa_rifornimenti.png.b64
+cumulo_rottami.png.b64
+relitto_auto.png.b64
+relitto_barca.png.b64
+tanica_benzina.png.b64
