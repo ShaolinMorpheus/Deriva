@@ -90,7 +90,7 @@
    i cresce verso SE (giù-destra), j verso SO (giù-sinistra). Il mare sta WO px PNG sotto il piano del ponte.
    =========================================================================== */
 const CFG = {
-  VERSION: 'v0.2m',
+  VERSION: 'v0.2n',
   ART: 0.3,               // px CSS per px PNG = zoom (si cambia coi bottoni + / −; 0.25 = stessa scala del gioco v0.1b.8, 0.5 = quella delle prove 0.2a-d)
   ZOOM_STEPS: [0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6],   // valori di ART dei bottoni
   WO: 64,                 // il livello del mare sta tanti px PNG sotto il piano del ponte (spessore delle facce)
@@ -141,7 +141,7 @@ const RAFT_BOTTOM = { ne: 468, se: 405, so: 401, no: 461 };      // 4 viste: rig
 function loadOne(src) { return new Promise(res => { const im = new Image(); im.onload = () => { (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => res(im)); }; im.onerror = () => res(null); im.src = src; }); }
 async function setupRaftViews() {
   const q = new URLSearchParams(location.search).get('viste') || (T('viste') !== 'auto' ? T('viste') : null); if (q) CFG.RAFT_VIEWS = +q;
-  if ((new URLSearchParams(location.search).get('zattera') || T('zattera')) === '3d') {                    // prova: zattera 3D di Claude (Blender), 32 viste, tela e centro uguali a quelle di Muse
+  if ((new URLSearchParams(location.search).get('zattera') || T('zattera')) !== 'muse') {                    // prova: zattera 3D di Claude (Blender), 32 viste, tela e centro uguali a quelle di Muse
     const ims = await Promise.all(Array.from({ length: 32 }, (_, k) => loadOne('assets/iso/mezzi/zattera3d/zattera3d_' + String(k).padStart(2, '0') + '.png')));
     if (ims.every(Boolean)) { RAFT.n = 32; RAFT.views = ims.map(im => ({ im, ox: -352, oy: -336 })); RAFT.win = [0, 1]; return; }
     console.warn('zattera 3D mancante, uso quella di Muse');
@@ -789,7 +789,7 @@ const TEST_OPTS = [
   { k: 'viste', label: 'Viste della zattera', def: 'auto', reload: true,
     ch: () => { const av = new Set(CFG.RAFT_AVAIL), c = [['auto', 'Automatico']]; for (const n of [4, 8, 16]) { const ks = []; for (let k = 0; k < 16; k += 16 / n) ks.push(k); if (ks.every(k => av.has(k))) c.push([String(n), n + ' viste']); } return c; },
     hint: 'Più viste = rotazione più fluida; compaiono qui man mano che Muse le consegna.' },
-  { k: 'zattera', label: 'Zattera', def: 'muse', reload: true, ch: () => [['muse', 'Disegnata da Muse'], ['3d', '3D di Claude (prova, 32 viste)']], hint: 'Prova: modello 3D renderizzato da ogni angolo, rotazione più fluida. I colori si migliorano dopo.' },
+  { k: 'zattera', label: 'Zattera', def: '3d', reload: true, ch: () => [['3d', '3D di Claude (32 viste)'], ['muse', 'Disegnata da Muse (16 viste)']], hint: '3D: modello renderizzato da ogni angolo, rotazione più fluida; colori e texture da migliorare. Muse: la zattera disegnata.' },
   { k: 'sfumo', label: 'Sfumatura fra le viste della zattera', def: '1', live: true, ch: () => [['1', 'Sì'], ['0', 'No (salto netto)']] },
   { k: 'onde', label: 'Onde di Muse sul mare', def: '1', live: true, ch: () => [['1', 'Sì'], ['0', 'No']] },
   { k: 'luce', label: 'Luce scorrevole sul mare', def: '1', live: true, ch: () => [['1', 'Sì'], ['0', 'No']] },
@@ -882,6 +882,7 @@ function parseCode(str) {
 
 // ---- menu ------------------------------------------------------------------------------------------
 const NOVITA = [
+  ['v0.2n', 'La zattera 3D (32 viste) è ora quella di serie. Quella di Muse resta in Menu → Prova → Zattera.'],
   ['v0.2m', 'Corretto il rettangolo scuro attorno alla zattera: l’ombra ora è sfumata a mano e funziona su tutti i telefoni.'],
   ['v0.2l', 'Prova: zattera 3D con 32 viste (Menu → Prova → Zattera). Gira più fluida; i colori si migliorano dopo. Quella di Muse resta di serie.'],
   ['v0.2k', 'Il protagonista cammina in 8 direzioni (le 4 diagonali più nord, sud, est, ovest), tutte disegnate da Muse.'],
