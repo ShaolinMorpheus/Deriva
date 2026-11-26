@@ -2,6 +2,9 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2m — 26 nov 2026 — in gioco si legge «v0.2m · isometrica · grafica Muse»
+- **Corretto:** rettangolo scuro attorno alla zattera sul telefono di Davide. Causa: l'ombra usava `ctx.filter = blur()`, che su alcuni dispositivi riempie tutta la tela. Ora l'ombra e la schiuma sono sfumate a mano con strati sovrapposti, senza filtri.
+
 ## 0.2l — 26 nov 2026 — in gioco si legge «v0.2l · isometrica · grafica Muse»
 - **Zattera 3D di prova (Claude, Blender):** 32 viste, una ogni 11,25°, stessa tela 704×512 e stesso centro (352,336) di Muse. Si attiva da Menu → Prova → Zattera (o `?zattera=3d`); di serie resta quella di Muse.
 - Modello costruito da zero in Python (`assets/iso/mezzi/zattera3d/raft_blender.py`): ponte di assi, barili, tenda, cassa, taniche, albero. Angoli e posizioni degli oggetti identici in ogni vista. Colori e texture sono una prima bozza, da migliorare.

@@ -90,7 +90,7 @@
    i cresce verso SE (giù-destra), j verso SO (giù-sinistra). Il mare sta WO px PNG sotto il piano del ponte.
    =========================================================================== */
 const CFG = {
-  VERSION: 'v0.2l',
+  VERSION: 'v0.2m',
   ART: 0.3,               // px CSS per px PNG = zoom (si cambia coi bottoni + / −; 0.25 = stessa scala del gioco v0.1b.8, 0.5 = quella delle prove 0.2a-d)
   ZOOM_STEPS: [0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6],   // valori di ART dei bottoni
   WO: 64,                 // il livello del mare sta tanti px PNG sotto il piano del ponte (spessore delle facce)
@@ -684,8 +684,11 @@ function raftShadow(ang) {
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), x0 = Math.min(...xs) - pad, y0 = Math.min(...ys) - pad;
   const c = mkCanvas(Math.ceil(Math.max(...xs) - x0 + pad), Math.ceil(Math.max(...ys) - y0 + pad)), g = c.getContext('2d');
   const path = (dx, dy) => { g.beginPath(); pts.forEach((p, n) => n ? g.lineTo(p[0] - x0 + dx, p[1] - y0 + dy) : g.moveTo(p[0] - x0 + dx, p[1] - y0 + dy)); g.closePath(); };
-  g.filter = 'blur(7px)'; g.fillStyle = 'rgba(8,26,34,.42)'; path(5, 8); g.fill();             // ombra stretta, a contatto con l'acqua
-  g.filter = 'blur(3px)'; g.strokeStyle = 'rgba(236,246,246,.30)'; g.lineWidth = 7; path(0, 0); g.stroke();   // filo di schiuma sul pelo dell'acqua
+  // niente g.filter (su alcuni telefoni disegna un rettangolo scuro attorno alla zattera): sfumo a mano con più strati sovrapposti
+  g.lineJoin = 'round';
+  for (let r = 16; r >= 2; r -= 2) { g.strokeStyle = 'rgba(8,26,34,.07)'; g.lineWidth = r * 2; path(5, 8); g.stroke(); }
+  g.fillStyle = 'rgba(8,26,34,.22)'; path(5, 8); g.fill();                                       // ombra stretta, a contatto con l'acqua
+  for (const w of [12, 9, 6, 3]) { g.strokeStyle = 'rgba(236,246,246,.09)'; g.lineWidth = w; path(0, 0); g.stroke(); }   // filo di schiuma sul pelo dell'acqua
   return RS[key] = { c, x0, y0 };
 }
 let rfT = null;                                                   // canvas d'appoggio per sfumare due viste
@@ -879,6 +882,7 @@ function parseCode(str) {
 
 // ---- menu ------------------------------------------------------------------------------------------
 const NOVITA = [
+  ['v0.2m', 'Corretto il rettangolo scuro attorno alla zattera: l’ombra ora è sfumata a mano e funziona su tutti i telefoni.'],
   ['v0.2l', 'Prova: zattera 3D con 32 viste (Menu → Prova → Zattera). Gira più fluida; i colori si migliorano dopo. Quella di Muse resta di serie.'],
   ['v0.2k', 'Il protagonista cammina in 8 direzioni (le 4 diagonali più nord, sud, est, ovest), tutte disegnate da Muse.'],
   ['v0.2j', 'Zattera completa: 16 viste di Muse, gira fluida a 360° senza sfumature strane.'],
