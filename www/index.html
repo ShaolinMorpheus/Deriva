@@ -90,7 +90,7 @@
    i cresce verso SE (giù-destra), j verso SO (giù-sinistra). Il mare sta WO px PNG sotto il piano del ponte.
    =========================================================================== */
 const CFG = {
-  VERSION: 'v0.2j',
+  VERSION: 'v0.2k',
   ART: 0.3,               // px CSS per px PNG = zoom (si cambia coi bottoni + / −; 0.25 = stessa scala del gioco v0.1b.8, 0.5 = quella delle prove 0.2a-d)
   ZOOM_STEPS: [0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6],   // valori di ART dei bottoni
   WO: 64,                 // il livello del mare sta tanti px PNG sotto il piano del ponte (spessore delle facce)
@@ -132,8 +132,9 @@ const IMG_LIST = {
   zne: 'assets/iso/mezzi/zattera_iso_ne.png', zse: 'assets/iso/mezzi/zattera_iso_se.png', zso: 'assets/iso/mezzi/zattera_iso_so.png', zno: 'assets/iso/mezzi/zattera_iso_no.png',
   pne: 'assets/iso/mezzi/protagonista_iso_ne.png', pse: 'assets/iso/mezzi/protagonista_iso_se.png', pso: 'assets/iso/mezzi/protagonista_iso_so.png', pno: 'assets/iso/mezzi/protagonista_iso_no.png'
 };
+for (const d of ['n', 'e', 's', 'o']) IMG_LIST['p' + d] = 'assets/iso/mezzi/protagonista_iso_' + d + '.png';   // fermo delle 4 cardinali (Gruppo iso 5)
 const WALK_N = 6;                          // camminata: 6 fotogrammi x 4 direzioni (Gruppo iso 4), tela 70x108, piedi in (35,104)
-for (const d of ['ne', 'se', 'so', 'no']) for (let n = 1; n <= WALK_N; n++) IMG_LIST['w' + d + n] = 'assets/iso/mezzi/camminata/protagonista_iso_' + d + '_passo' + n + '.png';
+for (const d of ['ne', 'se', 'so', 'no', 'n', 'e', 's', 'o']) for (let n = 1; n <= WALK_N; n++) IMG_LIST['w' + d + n] = 'assets/iso/mezzi/camminata/protagonista_iso_' + d + '_passo' + n + '.png';
 const I = {};
 const RAFT = { n: 4, views: [], win: [0.38, 0.62] };               // viste della zattera in uso: {im, ox, oy} = angolo in alto a sinistra rispetto al centro dell'impronta (a livello dell'acqua)
 const RAFT_BOTTOM = { ne: 468, se: 405, so: 401, no: 461 };      // 4 viste: riga (sotto l'ultima visibile) = vertice S dell'impronta
@@ -296,10 +297,11 @@ function inputVec() {                        // direzione sullo schermo (ux,uy) 
   return [ux, uy, mag];
 }
 function screenToGround(vx, vy) { return [(vx / 64 + vy / 32) / 2, (vy / 32 - vx / 64) / 2]; }   // da px CSS a tessere
+const FACE8 = ['se', 's', 'so', 'o', 'no', 'n', 'ne', 'e'];      // 8 direzioni, una ogni 45° dell'angolo sul terreno (0° = i+ = basso-destra, poi in senso orario sullo schermo)
 function pickFace(vi, vj, cur) {
-  const ai = Math.abs(vi), aj = Math.abs(vj), curI = cur === 'se' || cur === 'no';
-  const axisI = curI ? !(aj > ai * 1.25) : (ai > aj * 1.25);
-  return axisI ? (vi > 0 ? 'se' : 'no') : (vj > 0 ? 'so' : 'ne');
+  const th = (Math.atan2(vj, vi) * 180 / Math.PI + 360) % 360, k = FACE8.indexOf(cur);
+  if (k >= 0) { const d = Math.abs(((th - k * 45 + 540) % 360) - 180); if (d <= 30) return cur; }   // isteresi: si cambia direzione solo oltre 30° dal centro
+  return FACE8[Math.round(th / 45) % 8];
 }
 
 // ---- collisioni ----------------------------------------------------------------------
@@ -708,7 +710,7 @@ function drawRaft() {
 function drawPlayer(ghost) {
   const p = PX(player.i, player.j), walking = player.moving && I['w' + player.face + 1];
   const im = walking ? I['w' + player.face + (1 + Math.floor(player.ph) % WALK_N)] : I['p' + player.face];
-  const ax = walking ? 35 : im.width / 2, ay = walking ? 104 : 100;        // punto-piedi: (35,104) nei 24 passi, (W/2,100) nel fermo
+  const tall = im.height === 108, ax = tall ? 35 : im.width / 2, ay = tall ? 104 : 100;        // punto-piedi: (35,104) su tela 70×108 (camminata e fermo cardinale), (W/2,100) nel fermo diagonale
   if (!ghost) {  // ombra sotto i piedi
   const x0 = sxp(p[0] - 17), x1 = sxp(p[0] + 17), y0 = syp(p[1] - 6), y1 = syp(p[1] + 6);
   ctx.fillStyle = 'rgba(10,20,22,.34)'; ctx.beginPath(); ctx.ellipse((x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2, 0, 0, 7); ctx.fill();
@@ -811,7 +813,7 @@ function perfWatch(ms) {
 
 // ---- salvataggi: automatico + 3 slot, più il codice corto -------------------------------------------
 let playSec = 0;
-const FACES = ['ne', 'se', 'so', 'no'], SLOTS = ['auto', '1', '2', '3'];
+const FACES = ['ne', 'se', 'so', 'no', 'n', 'e', 's', 'o'], SLOTS = ['auto', '1', '2', '3'];
 const slotKey = n => 'derivaIsoSave_' + n;
 function readSlot(n) { try { const o = JSON.parse(lsGet(slotKey(n))); return o && o.v === 1 ? o : null; } catch (_) { return null; } }
 function snapshot() {
@@ -871,6 +873,7 @@ function parseCode(str) {
 
 // ---- menu ------------------------------------------------------------------------------------------
 const NOVITA = [
+  ['v0.2k', 'Il protagonista cammina in 8 direzioni (le 4 diagonali più nord, sud, est, ovest), tutte disegnate da Muse.'],
   ['v0.2j', 'Zattera completa: 16 viste di Muse, gira fluida a 360° senza sfumature strane.'],
   ['v0.2i', 'Zattera con 8 viste di Muse (lotti A+B): gira più fluida, ponte e albero coerenti in tutte le direzioni.'],
   ['v0.2h', 'Prima versione come app (APK). Menu ☰ con salvataggi (automatico, 3 slot e codice), Grafica (Auto/Bassa/Media/Alta) e Grafica di prova. Nuova disposizione della piattaforma: pozzo → tubi → serbatoio con la baracca del rifornimento, magazzino di container e gru dietro. Sagoma chiara quando cammini dietro un oggetto.'],

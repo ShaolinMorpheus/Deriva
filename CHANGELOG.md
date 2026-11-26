@@ -2,6 +2,12 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2k — 26 nov 2026 — in gioco si legge «v0.2k · isometrica · grafica Muse»
+- **Protagonista in 8 direzioni:** montate le 4 cardinali di Muse (Gruppo iso 5: N, E, S, O; fermo + 6 passi, 28 sprite, tela 70×108, piedi in (35,104), magenta 0). Direzione scelta ogni 45° sull'angolo sul terreno (si cambia solo oltre 30° dal centro: niente scatti); il fermo cardinale usa lo stesso punto-piedi della camminata. Il codice di salvataggio e gli slot già conoscono le 8 direzioni (i salvataggi vecchi restano validi).
+- Verifica: 8 direzioni provate sul molo, personaggio coerente, piedi fermi sullo stesso punto.
+- Il «Gruppo iso 5» di Muse è questo; gli oggetti di scena diventano **Gruppo iso 6**.
+- Test: 18 prove automatiche ok, nessun errore.
+
 ## 0.2j — 26 nov 2026 — in gioco si legge «v0.2j · isometrica · grafica Muse»
 - **Zattera: lotto C montato (viste dispari) → 16/16 viste**, una ogni 22,5°; il motore le usa da solo, con cambio netto di vista (nessuna sfumatura, quindi niente doppia immagine). Verifica: tela 704×512 e magenta 0 in 8/8, lotti A+B identici. Provata a 16 angoli sul mare: rotazione continua e coerente. Note: viste 01 e 03 con il ponte un po' più piccolo delle vicine.
 - Test: 18 prove automatiche ok, nessun errore.
