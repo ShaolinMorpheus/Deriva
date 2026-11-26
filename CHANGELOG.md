@@ -2,6 +2,14 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2g — 27 nov 2026, notte — ANTEPRIMA, NON ANCORA PUBBLICATA (aspetta l'ok di Davide): in gioco si leggerà «v0.2g · prova isometrica · grafica Muse»
+Richiesta di Davide: «sistemare tutta la predisposizione degli oggetti sopra: messi a caso, devono avere senso, alla Water world / Mad Max».
+- **Nuova disposizione con una logica** (solo con gli oggetti che ci sono): torre di perforazione dietro al foro nel ponte; testa del pozzo accanto; **tubi dal pozzo al serbatoio** (2 dritti + 1 a T in fila lungo SO); **serbatoio vicino al molo** (punto di rifornimento) con la **baracca** accanto (il benzinaio); **2 container come magazzino** (ocra + verde) e **gru sul bordo NO** con il braccio sul mare (recupero dal mare), tutti sul lato dietro. Il container ruggine e la zona est/sud-ovest restano liberi per gli oggetti di scena.
+- **Regola di visibilità:** gli oggetti alti stanno dietro (verso nord), quelli bassi davanti, così non coprono la vista dei tubi e di chi cammina (provato: spostare un container a est copriva pozzo e tubi). Zattera attraccata di fronte al serbatoio (i = 6,5), partenza a piedi sul molo.
+- **Sagoma chiara del protagonista** quando cammina dietro un oggetto solido (il disegno vero si confondeva con la ruggine dei container).
+- Controllo di raggiungibilità: nessuna tasca irraggiungibile sul ponte (4705 punti liberi, tutti raggiungibili dal molo); nessun errore; 15,3 ms medi nel simulatore.
+- **Richiesta a Muse per il Gruppo iso 5 (oggetti di scena):** `muse/2026-11-27-gruppo-iso-5-props/RICHIESTA.md` (barili, casse, tettoie di tela, pompa di rifornimento, lampioni, antenna, stenditoio, reti da pesca, raccolta acqua, rottami, bitte e scaletta, barricate, stufa, bandiera), consegna a lotti, bassi per primi.
+
 ## 0.2f — 27 nov 2026, notte — PROVA ISOMETRICA: in gioco si legge «v0.2f · prova isometrica · grafica Muse»
 - **Zattera: lotto A delle 16 viste montato** (viste 00, 04, 08, 12 = le 4 diagonali, tela 704×512, centro impronta (352,336)) e **zattera NE v2** (con la cassa che mancava). Verificato: misure, magenta 0, bordo sud dell'impronta sulla riga 495 in tutte e 4, bordi puliti. Prova a vista in 4 direzioni sul mare: albero a prua, tenda a poppa, cassa al centro in tutte le viste.
 - **Motore:** `CFG.RAFT_AVAIL` elenca le viste consegnate (ora 0,4,8,12) e il motore usa da solo 4, 8 o 16 viste quando il giro è completo (lotto B → 8 viste, lotto C → 16); `?viste=4|8` nell'indirizzo per confrontare. Senza altri lotti la rotazione è come prima: 4 viste con sfumatura (la sovrapposizione fra due viste a 90° resta finché non arrivano B e C).
