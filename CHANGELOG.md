@@ -2,6 +2,11 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2r — 26 nov 2026 — in gioco si legge «v0.2r · isometrica · grafica Muse»
+- **Via ogni sagoma sotto la zattera 3D** (ombra a sagoma, anelli e schiuma rettangolari): niente più forme geometriche disegnate nel gioco. Resta solo la scia di cerchi quando naviga.
+- **La zattera ondeggia su e giù** (due onde sovrapposte, un po' più marcato quando naviga).
+- **Schiuma vera, renderizzata in Blender**, attorno a ogni barile (macchie irregolari che seguono lo scafo da ogni angolo): rifatte le 32 viste.
+
 ## 0.2q — 26 nov 2026 — in gioco si legge «v0.2q · isometrica · grafica Muse»
 - **Zattera immersa nell'acqua** (la zattera 3D sembrava sospesa): rifatte le 32 viste in Blender con i barili a metà sotto il pelo dell'acqua (piano «holdout» a z=0 che nasconde la parte immersa; modello in `raft_blender.py`).
 - **Effetti acqua nel gioco (solo zattera 3D):** onde che si allargano dallo scafo, acqua scura a contatto, schiuma a tratti irregolari sui lati verso di noi, scia di cerchi quando naviga.

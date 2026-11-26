@@ -88,6 +88,38 @@ nW=4
 for i in range(nW):
     y=-0.585+i*0.39
     barrel(L/2+0.02,y,'x'); barrel(-L/2-0.02,y,'x')
+
+# schiuma sul pelo dell'acqua attorno a ogni barile (piano a z=0.002, alpha = sfumo del bordo x rumore)
+fm=bpy.data.materials.new('foam'); fm.use_nodes=True; nt=fm.node_tree; nt.nodes.clear()
+o_=nt.nodes.new('ShaderNodeOutputMaterial'); em=nt.nodes.new('ShaderNodeEmission'); tr=nt.nodes.new('ShaderNodeBsdfTransparent'); mx=nt.nodes.new('ShaderNodeMixShader')
+tc=nt.nodes.new('ShaderNodeTexCoord'); sp=nt.nodes.new('ShaderNodeSeparateXYZ'); nt.links.new(tc.outputs['Generated'],sp.inputs[0])
+def mth(op,a=None,b=None,clamp=False):
+    n=nt.nodes.new('ShaderNodeMath'); n.operation=op; n.use_clamp=clamp
+    if a is not None: nt.links.new(a,n.inputs[0]) if not isinstance(a,float) else setattr(n.inputs[0],'default_value',a)
+    if b is not None: nt.links.new(b,n.inputs[1]) if not isinstance(b,float) else setattr(n.inputs[1],'default_value',b)
+    return n.outputs[0]
+du=mth('ABSOLUTE',mth('SUBTRACT',sp.outputs[0],0.5)); dv=mth('ABSOLUTE',mth('SUBTRACT',sp.outputs[1],0.5))
+u2=mth('MULTIPLY',du,2.0); v2=mth('MULTIPLY',dv,2.0)
+d=mth('SQRT',mth('ADD',mth('MULTIPLY',u2,u2),mth('MULTIPLY',v2,v2)))
+mr=nt.nodes.new('ShaderNodeMapRange'); mr.inputs[1].default_value=0.45; mr.inputs[2].default_value=1.0; mr.inputs[3].default_value=1.0; mr.inputs[4].default_value=0.0; mr.clamp=True
+nt.links.new(d,mr.inputs[0])
+nz=nt.nodes.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value=9; nz.inputs['Detail'].default_value=6; nt.links.new(tc.outputs['Object'],nz.inputs['Vector'])
+nm=nt.nodes.new('ShaderNodeMapRange'); nm.inputs[1].default_value=0.35; nm.inputs[2].default_value=0.60; nm.inputs[3].default_value=0.15; nm.inputs[4].default_value=1.0; nm.clamp=True; nt.links.new(nz.outputs['Fac'],nm.inputs[0])
+a=mth('MULTIPLY',mr.outputs[0],nm.outputs[0]); a=mth('MULTIPLY',a,1.0)
+nt.links.new(a,mx.inputs[0]); nt.links.new(tr.outputs[0],mx.inputs[1]); nt.links.new(em.outputs[0],mx.inputs[2]); nt.links.new(mx.outputs[0],o_.inputs['Surface'])
+em.inputs['Color'].default_value=(0.86,0.95,0.97,1); em.inputs['Strength'].default_value=1.0
+def foam_plane(x,y,axis):
+    bpy.ops.mesh.primitive_plane_add(size=1,location=(x,y,0.0)); o=bpy.context.object
+    # dimensioni in locale della zattera (root scala 0.9, z abbassato): z locale per avere z mondo 0.002
+    o.location=(x,y,(0.002+0.2)/0.9)
+    ln,wd=bl+0.36,bd+0.34
+    o.scale=(wd,ln,1) if axis=='y' else (ln,wd,1)
+    o.data.materials.append(fm); o.parent=root
+for i in range(nL):
+    x=-L/2+bd/2+i*(L-bd)/(nL-1)
+    foam_plane(x,W/2+0.02,'y'); foam_plane(x,-W/2-0.02,'y')
+for i in range(nW):
+    foam_plane(L/2+0.02,-0.585+i*0.39,'x'); foam_plane(-L/2-0.02,-0.585+i*0.39,'x')
 # tent
 tm=bpy.data.meshes.new('tent'); 
 vs=[(-0.45,-0.35,0),(0.45,-0.35,0),(0.45,0.35,0),(-0.45,0.35,0),(-0.45,0,0.55),(0.45,0,0.55)]

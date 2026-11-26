@@ -90,7 +90,7 @@
    i cresce verso SE (giù-destra), j verso SO (giù-sinistra). Il mare sta WO px PNG sotto il piano del ponte.
    =========================================================================== */
 const CFG = {
-  VERSION: 'v0.2q',
+  VERSION: 'v0.2r',
   ART: 0.3,               // px CSS per px PNG = zoom (si cambia coi bottoni + / −; 0.25 = stessa scala del gioco v0.1b.8, 0.5 = quella delle prove 0.2a-d)
   ZOOM_STEPS: [0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6],   // valori di ART dei bottoni
   WO: 64,                 // il livello del mare sta tanti px PNG sotto il piano del ponte (spessore delle facce)
@@ -139,18 +139,11 @@ const I = {};
 const RAFT = { n: 4, views: [], win: [0.38, 0.62] };               // viste della zattera in uso: {im, ox, oy} = angolo in alto a sinistra rispetto al centro dell'impronta (a livello dell'acqua)
 const RAFT_BOTTOM = { ne: 468, se: 405, so: 401, no: 461 };      // 4 viste: riga (sotto l'ultima visibile) = vertice S dell'impronta
 function loadOne(src) { return new Promise(res => { const im = new Image(); im.onload = () => { (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => res(im)); }; im.onerror = () => res(null); im.src = src; }); }
-function silhouette(im) {                                        // sagoma scura e sfumata di una vista (per l'ombra sull'acqua), a metà risoluzione
-  const w = Math.round(im.width / 2), h = Math.round(im.height / 2), c = mkCanvas(w, h), g = c.getContext('2d');
-  g.filter = 'none'; g.drawImage(im, 0, 0, w, h); g.globalCompositeOperation = 'source-in'; g.fillStyle = 'rgba(8,26,34,1)'; g.fillRect(0, 0, w, h);
-  const o = mkCanvas(w, h), q = o.getContext('2d');                  // sfumo a mano (niente ctx.filter: su alcuni telefoni fa un rettangolo)
-  q.globalAlpha = 0.12; for (let dx = -3; dx <= 3; dx += 1.5) for (let dy = -2; dy <= 2; dy += 1) q.drawImage(c, dx, dy);
-  return o;
-}
 async function setupRaftViews() {
   const q = new URLSearchParams(location.search).get('viste') || (T('viste') !== 'auto' ? T('viste') : null); if (q) CFG.RAFT_VIEWS = +q;
   if ((new URLSearchParams(location.search).get('zattera') || T('zattera')) !== 'muse') {                    // prova: zattera 3D di Claude (Blender), 32 viste, tela e centro uguali a quelle di Muse
     const ims = await Promise.all(Array.from({ length: 32 }, (_, k) => loadOne('assets/iso/mezzi/zattera3d/zattera3d_' + String(k).padStart(2, '0') + '.png')));
-    if (ims.every(Boolean)) { RAFT.n = 32; RAFT.views = ims.map(im => ({ im, ox: -352, oy: -336 })); RAFT.win = [0.499, 0.501]; RAFT.sil = ims.map(silhouette); return; }   // 32 viste: cambio quasi netto (lo sfumo su tutto l'intervallo fa un'immagine doppia)
+    if (ims.every(Boolean)) { RAFT.n = 32; RAFT.views = ims.map(im => ({ im, ox: -352, oy: -336 })); RAFT.win = [0.499, 0.501]; RAFT.d3 = true; return; }   // 32 viste: cambio quasi netto (lo sfumo su tutto l'intervallo fa un'immagine doppia)
     console.warn('zattera 3D mancante, uso quella di Muse');
   }
   const av = new Set(CFG.RAFT_AVAIL);
@@ -162,7 +155,7 @@ async function setupRaftViews() {
     if (!ims.every(Boolean)) { console.warn('viste della zattera mancanti per n=' + n); continue; }
     RAFT.n = n; RAFT.views = ims.map(im => ({ im, ox: -352, oy: -336 })); RAFT.win = n >= 16 ? [0, 1] : n === 8 ? [0.2, 0.8] : [0.38, 0.62]; return;
   }
-  RAFT.sil = null; RAFT.n = 4; RAFT.win = [0.38, 0.62];            // ripiego: le 4 diagonali del Gruppo iso 3
+  RAFT.d3 = false; RAFT.n = 4; RAFT.win = [0.38, 0.62];            // ripiego: le 4 diagonali del Gruppo iso 3
   RAFT.views = ['se', 'so', 'no', 'ne'].map(n => ({ im: I['z' + n], ox: -320, oy: 160 - RAFT_BOTTOM[n] }));
 }
 function loadImages() {
@@ -701,15 +694,13 @@ function raftShadow(ang) {
 }
 let rfT = null;                                                   // canvas d'appoggio per sfumare due viste
 // ---- acqua attorno alla zattera 3D: onde che si allargano, schiuma sul pelo dell'acqua, scia quando naviga -----------------------
-const FOOT = [1.52, 1.07], wake = []; let wakeT = 0;
-function footPts(ci, cj, hx, hy) { return [[-hx, -hy], [hx, -hy], [hx, hy], [-hx, hy]].map(([x, y]) => { const a = ci * x - cj * y, b = cj * x + ci * y; return [(a - b) * 128, (a + b) * 64]; }); }
+const wake = []; let wakeT = 0;
 function wakeSpawn() {
-  if (!RAFT.sil || raft.speed < 30 || stats.t - wakeT < 0.22) return;
+  if (!RAFT.d3 || raft.speed < 30 || stats.t - wakeT < 0.22) return;
   wakeT = stats.t; const ci = Math.cos(raft.phi), cj = Math.sin(raft.phi);
   for (const y of [-0.7, 0.7]) { const x = -1.5; wake.push({ i: raft.i + ci * x - cj * y, j: raft.j + cj * x + ci * y, t: stats.t }); }
   while (wake.length && stats.t - wake[0].t > 2) wake.shift();
 }
-function polyPath(pts, cx, cy, closed) { ctx.beginPath(); pts.forEach((q, n) => n ? ctx.lineTo(sxp(cx + q[0]), syp(cy + q[1])) : ctx.moveTo(sxp(cx + q[0]), syp(cy + q[1]))); if (closed) ctx.closePath(); }
 function waterBack() {
   const pc = PX(raft.i, raft.j), cx = pc[0], cy = pc[1] + CFG.WO, ci = Math.cos(raft.phi), cj = Math.sin(raft.phi), t = stats.t;
   ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
@@ -719,40 +710,21 @@ function waterBack() {
     ctx.strokeStyle = 'rgba(232,244,246,' + a.toFixed(3) + ')'; ctx.lineWidth = Math.max(1, 5 - age * 2) * S;
     ctx.beginPath(); ctx.ellipse(sxp(q[0]), syp(q[1] + CFG.WO), r * 181 * S, r * 90.5 * S, 0, 0, 7); ctx.stroke();
   }
-  for (let k = 0; k < 3; k++) {                                        // onde che escono dallo scafo
-    const ph = (t * 0.32 + k / 3) % 1, e = 0.03 + ph * 0.34, a = 0.40 * (1 - ph) * (1 - ph);
-    polyPath(footPts(ci, cj, FOOT[0] + e, FOOT[1] + e), cx, cy, true);
-    ctx.strokeStyle = 'rgba(228,242,244,' + a.toFixed(3) + ')'; ctx.lineWidth = (9 - ph * 4) * S; ctx.stroke();
-  }
-  polyPath(footPts(ci, cj, FOOT[0] + 0.02, FOOT[1] + 0.02), cx, cy, true);   // acqua scura a contatto con lo scafo
-  ctx.strokeStyle = 'rgba(8,30,38,.22)'; ctx.lineWidth = 12 * S; ctx.stroke();
   ctx.restore();
 }
-function waterFront() {                                                  // schiuma sul pelo dell'acqua, sui due lati rivolti verso di noi (sopra la zattera)
-  const pc = PX(raft.i, raft.j), cx = pc[0], cy = pc[1] + CFG.WO, ci = Math.cos(raft.phi), cj = Math.sin(raft.phi), t = stats.t;
-  const pts = footPts(ci, cj, FOOT[0] - 0.02, FOOT[1] - 0.02);
-  ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  for (let n = 0; n < 4; n++) {
-    const a = pts[n], b = pts[(n + 1) % 4]; if ((a[1] + b[1]) / 2 < 0) continue;
-    polyPath([a, b], cx, cy, false);
-    ctx.setLineDash([46 * S, 15 * S, 20 * S, 12 * S]); ctx.lineDashOffset = -t * 8 * S;           // schiuma a tratti irregolari che scorrono piano
-    for (const [w, al] of [[15, .10], [9, .16], [4, .30]]) { ctx.strokeStyle = 'rgba(240,249,250,' + al + ')'; ctx.lineWidth = w * S; ctx.stroke(); }
-  }
-  ctx.restore();
+function drawRaft() { if (RAFT.d3) waterBack(); drawRaftBody(); }
+function raftBob() {                                              // ondeggio lento su e giù (due onde sovrapposte), un po' più marcato quando naviga
+  const t = stats.t, m = 1 + Math.min(1, raft.speed / 150) * 0.6;
+  return (Math.sin(t * 1.25) * 1.7 + Math.sin(t * 2.3 + 1.3) * 0.7) * m;
 }
-function drawRaft() { if (RAFT.sil) waterBack(); drawRaftBody(); if (RAFT.sil) waterFront(); }
 function drawRaftBody() {
-  const p = PX(raft.i, raft.j), cyW = p[1] + CFG.WO, n = RAFT.n, step = TAU / n;
+  const p = PX(raft.i, raft.j), cyW = p[1] + CFG.WO + (RAFT.d3 ? raftBob() : 0), n = RAFT.n, step = TAU / n;
   const f = wrapAng(raft.phi) / step, k = Math.floor(f) % n, k2 = (k + 1) % n;
   let t = f - Math.floor(f);
   if (!CFG.RAFT_FADE) t = t > 0.5 ? 1 : 0;
   else { t = Math.max(0, Math.min(1, (t - RAFT.win[0]) / (RAFT.win[1] - RAFT.win[0]))); t = t * t * (3 - 2 * t); }     // sfumo solo nel tratto centrale (poche viste) o su tutto l'intervallo (16 viste)
   const A = RAFT.views[k], B = RAFT.views[k2];
-  if (RAFT.sil) {                                                   // zattera 3D: ombra = sagoma della vista stessa, spostata in basso (niente rettangolo)
-    const a = RAFT.sil[k], b = RAFT.sil[k2];
-    if (t < 0.999) img(a, p[0] - 352, cyW - 336 + 9, 704, 512, 0.42 * (1 - t));
-    if (t > 0.001) img(b, p[0] - 352, cyW - 336 + 9, 704, 512, 0.42 * t);
-  } else {
+  if (!RAFT.d3) {
   const sA = raftShadow(k * step), sB = raftShadow(k2 * step);       // ombra e schiuma seguono la stessa sfumatura della zattera
   if (t < 0.999) img(sA.c, p[0] + sA.x0, cyW + sA.y0, null, null, 1 - t);
   if (t > 0.001) img(sB.c, p[0] + sB.x0, cyW + sB.y0, null, null, t);
@@ -937,6 +909,7 @@ function parseCode(str) {
 
 // ---- menu ------------------------------------------------------------------------------------------
 const NOVITA = [
+  ['v0.2r', 'Zattera 3D: via ogni sagoma sotto la zattera. Ondeggia su e giù. Schiuma attorno ai barili (nuove viste).'],
   ['v0.2q', 'Zattera immersa nell’acqua: barili a metà sotto il pelo, onde che si allargano, schiuma sullo scafo e scia quando naviga.'],
   ['v0.2p', 'Zattera 3D: tolta l’ombra rettangolare (ora l’ombra segue la sagoma). La zattera è più veloce (+38%).'],
   ['v0.2o', 'Zattera 3D: niente più immagine doppia/trasparente mentre gira. Le viste ora cambiano di netto (sono 32, quindi non si nota).'],
