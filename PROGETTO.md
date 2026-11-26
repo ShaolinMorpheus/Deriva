@@ -1,7 +1,7 @@
 # DERIVA — Progetto
 Versione documento: **0.1-progetto** (25 nov 2026)
 Stato: concept scelto dall'utente — Variante A «Deriva: Waterworld / Mad Max sul mare».
-Codice: giocabile **v0.1b.1** (mare infinito, orizzontale). Prossimo: grafica di Muse, poi **v0.1c** (POI).
+Codice: giocabile **v0.2h** (motore isometrico, menu, salvataggi, APK). Prossimo: mondo da esplorare con piattaforme da saccheggiare (vedi «Visione di gioco»).
 
 ## In una frase
 Mare infinito senza terraferma. Vivi su una zattera-base, la benzina è il tuo tempo:
@@ -32,6 +32,27 @@ Correzioni tecniche proposte da Claude il 25 nov (non contestate dall'utente):
 - Le varianti a/b di ogni tessera di mare devono potersi affiancare senza giunture; basso/medio/fondo hanno la stessa struttura e cambiano solo colore: le sfumature tra livelli le fa il gioco.
 - Salvataggio con numero di versione (gli aggiornamenti arrivano da GitHub Pages e non devono rompere i salvataggi).
 - Nei prompt a Muse niente nomi di film: si descrivono solo i materiali.
+
+## Visione di gioco — richieste dell'utente (26 nov 2026, notte)
+Dette dall'utente (con il vecchio elenco «fuori dal prototipo» ora entrano tutte, una alla volta):
+- **Esplorare il mare** e trovare **piattaforme** con sopra rottami e altro da raccogliere; i rottami **servono a migliorare altro** (zattera/base). Raccogliere anche **taniche di petrolio/benzina**.
+- Sulle piattaforme **missioni**: alcune **vuote** (solo da saccheggiare), altre **con nemici**, nello spirito di Waterworld.
+- **Fortezze nemiche in ferro arrugginito** e **nemici in stile «smokers»** del film: predoni, **motoscafi** compresi. (Nei prompt a Muse niente nomi di film: si descrivono materiali e forme.)
+- **Inizio partita sempre uguale**: introduzione con **dialoghi detti dal personaggio**, poi parte il mondo.
+- **Menu** (il ☰ che c'è già) con le **missioni**.
+- **Sete e fame.**
+
+### Piano proposto da Claude (NON ancora approvato: l'ordine lo decide l'utente)
+Ogni passo si chiude con versione visibile, riga in CHANGELOG e prova sul telefono; la grafica nuova passa da Muse con anteprima e ok prima.
+1. **v0.3a Mare da esplorare** — mondo infinito a chunk dalla seed (regola POI per regione 5×5 già scritta sopra), piattaforme e relitti come POI, **rottami e taniche** raccolti col tasto azione, inventario, benzina con HUD e deriva a secco. Il salvataggio (già pronto, versionato) si estende.
+2. **v0.3b Piattaforme e missioni** — sbarco sulle piattaforme (tipi: vuota / con scorte / con nemici), primi **nemici a piedi** semplici, missione = obiettivo + ricompensa; scheda **Missioni** nel menu ☰. Rottami → **miglioramenti** della zattera.
+3. **v0.3c Inizio partita** — scena fissa all'avvio con **dialoghi** (riquadri di testo, il protagonista parla), saltabile dopo la prima volta; poi parte il mondo. Il sistema di dialogo serve anche per le missioni.
+4. **v0.3d Sete e fame** — acqua e cibo (acqua da pozzi/raccolta pioggia, cibo da pesca e scorte: gli oggetti di scena già chiesti a Muse, reti da pesca e raccolta acqua, servono a questo).
+5. **v0.3e Predoni** — **motoscafi nemici** in mare (inseguono, speronano), **fortezze di ferro arrugginito** come POI grande con missione.
+
+Attenzione al pilastro 5 («tensione senza punizione cieca»): sete e fame vanno fatte **morbide** (a zero ti indebolisci, rallenti, vedi male, ma puoi recuperare; niente morte improvvisa). Da confermare con l'utente.
+
+Grafica da chiedere a Muse (per gruppi, con le regole iso già in `muse/ISTRUZIONI.md`): piattaforme varie e relitti, rottami e taniche come oggetti raccoglibili, nemici a piedi (4 direzioni, camminata), motoscafi e fortezza, icone di interfaccia (acqua, cibo, rottami, benzina), riquadro dei dialoghi e ritratto. Il Gruppo iso 5 (oggetti di scena) in corso ne copre già una parte.
 
 ## Base tecnica (stessa di Sette Mari)
 - HTML/JS su canvas, APK Android con Capacitor, pubblicazione GitHub Pages.

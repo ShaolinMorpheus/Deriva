@@ -2,6 +2,9 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## Progetto — 26 nov 2026, notte — in gioco resta «v0.2h · isometrica · grafica Muse»
+- L'utente descrive la **visione del gioco**: esplorare il mare, piattaforme con rottami da raccogliere (servono a migliorare), taniche, **missioni** sulle piattaforme (vuote o con nemici), **fortezze di ferro arrugginito** e nemici in stile «smokers» con **motoscafi**, **inizio partita fisso con dialoghi** del personaggio, **menu con le missioni**, **sete e fame**. Scritto in `PROGETTO.md` («Visione di gioco») con un piano proposto in 5 passi (v0.3a–e); l'ordine non è ancora deciso. Nota: sete e fame da fare morbide (pilastro 5).
+
 ## 0.2h — 27 nov 2026, notte — PRIMA VERSIONE COME APP: in gioco si legge «v0.2h · isometrica · grafica Muse»
 Richiesta di Davide: «Facciamo anche l'apk che così lo scarico, metti come su Sette Mari qualche salvataggio, l'impostazione per la grafica di prova».
 - **Il motore isometrico diventa il gioco** (`www/index.html`). Il gioco di prima (v0.1b.8, dall'alto) e le versioni vecchie stanno in `www/storico/` (con `<base href="../">`, così ritrovano le loro immagini) e si aprono da Menu → Novità → Versioni precedenti: nulla è stato tolto.
