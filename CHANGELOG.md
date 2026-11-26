@@ -2,6 +2,9 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2o — 26 nov 2026 — in gioco si legge «v0.2o · isometrica · grafica Muse»
+- **Corretto:** la zattera 3D lasciava un'immagine doppia semitrasparente mentre girava (lo sfumo fra viste vicine copriva tutto l'intervallo). Ora le 32 viste cambiano di netto (cambio netto a metà fra due viste), quindi non c'è più fantasma.
+
 ## 0.2n — 26 nov 2026 — in gioco si legge «v0.2n · isometrica · grafica Muse»
 - **La zattera 3D (Blender, 32 viste) diventa quella di serie.** Quella disegnata da Muse (16 viste) resta scegliibile da Menu → Prova → Zattera (o `?zattera=muse`).
 
