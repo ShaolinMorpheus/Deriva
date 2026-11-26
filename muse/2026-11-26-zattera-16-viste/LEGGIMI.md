@@ -1,6 +1,6 @@
-# Zattera in 16 viste — LOTTI A+B (Deriva)
+# Zattera in 16 viste — LOTTI A+B+C (Deriva)
 
-Zattera che ruota fluida a 360° (una vista ogni 22,5°) per il nuovo sistema di montaggio. Questa consegna contiene **il lotto A (viste diagonali 00, 04, 08, 12) e il lotto B (viste cardinali 02, 06, 10, 14)**: con le 8 viste pari la rotazione è già montabile. **Sostituisce la zattera del Gruppo iso 3** (le viste singole `zattera_iso_ne/se/so/no.png` restano come storico). Il testo integrale della richiesta è in `RICHIESTA.md` in questa cartella.
+Zattera che ruota fluida a 360° (una vista ogni 22,5°) per il nuovo sistema di montaggio. Questa consegna contiene **il lotto A (viste diagonali 00, 04, 08, 12), il lotto B (viste cardinali 02, 06, 10, 14) e il lotto C (viste dispari 01, 03, 05, 07, 09, 11, 13, 15)**: le 16 viste sono complete e la rotazione è montabile a 16 passi. **Sostituisce la zattera del Gruppo iso 3** (le viste singole `zattera_iso_ne/se/so/no.png` restano come storico). Il testo integrale della richiesta è in `RICHIESTA.md` in questa cartella.
 
 ## Tela e centro impronta (tutte le viste)
 - Tela **704×512** per tutte le viste, sfondo trasparente, nessun ritaglio.
@@ -55,11 +55,46 @@ Limiti dichiarati del rifacimento:
 - **14**: taniche ~0,28 tessere sotto i punti guida.
 - I ponti sono rettangoli piatti, ma resta una leggera inclinazione prospettica del disegno generato (il bordo superiore del ponte è un poco storto in 06 e 14).
 
+## Lotto C — viste dispari 01, 03, 05, 07, 09, 11, 13, 15
+**Metodo**: stesso del FIX lotto B — generazioni guidate (pannello del foglio guida + viste vicine approvate), selezione per misura dell'angolo di prua (tenda→albero, punti da visual grounding sul grezzo 1760×1280, correzione d'aspetto applicata), montaggio con ritaglio v3, scala uniforme da compromesso d'area (area assito → 98304 px², con tetto di fit per stare in tela), centro assito a (352, 306), centro impronta (352, 336) per costruzione. **Nominali prua** (angolo schermo dell'asse U, formula di `mount_view.py`: 01: 50,4° · 03: 129,6° · 05: 168,3° · 07: 191,7° · 09: 230,4° · 11: 309,6° · 13: 348,3° · 15: 11,7°); i nominali sono stati verificati contro i marcatori M del foglio guida (accordo entro ~1° sui pannelli 01/09, tolto il sollevamento di 30 px del livello assito). Residuo magenta e tinta forte **0 su tutte le 8 viste**. Master a piena risoluzione in `lavoro-gruppo4a/gen_zattera16/` (`zattera_iso_<vista>_master.png`, 1446×1057 – 1634×952); script `lavoro-gruppo4a/build_zattera16_lotto_c.py`, scheda `scheda_lotto_c.png` (8 viste sul mare vero con parallelogramma impronta e punti-base + striscia con la sequenza completa 00→15).
+
+**Difficoltà del lotto**: il generatore tende a incollarsi alle 4 diagonali approvate (iso 3): le generazioni fresche atterrano quasi sempre sugli angoli 00/04/08/12 (01 a ~31° invece di 50,4°; 03 a ~149° invece di 129,6°; 09 a ~200° invece di 230,4°; 11/13 a ~325° invece di 309,6°/348,3°), e le correzioni per ripresa saltano spesso all'attrattore successivo (01 a 87° = vista 02; 09 a 268° = vista 10). Servono molti tentativi e solo le rotazioni piccole richieste per ripresa (8–11°) spostano l'angolo di poco per volta. **4 viste su 8 restano fuori dal criterio ±11°** dopo 5–7 tentativi ciascuna: sono consegnate come migliori disponibili, con lo scarto dichiarato (come previsto dalla richiesta).
+
+| Vista | Prua misurata (tenda→albero) | Nominale U | Scarto | Tentativi | Sorgente scelta |
+|---|---|---|---|---|---|
+| `zattera_iso_01.png` | 46,1° (centro→albero 45,3°) | 50,4° | −4,2° ✓ | 5 | lottoc5 (ripresa da gen1, +10° richiesti) |
+| `zattera_iso_03.png` | 145,3° (centro→albero 147,3°) | 129,6° | **+15,6°** | 6 | lottoc3 (ripresa da gen1, −20° richiesti) |
+| `zattera_iso_05.png` | 157,9° (centro→albero 156,7°) | 168,3° | −10,4° ✓ | 3 | lottoc2 (generazione fresca, prompt rafforzato) |
+| `zattera_iso_07.png` | 198,4° (centro→albero 205,2°) | 191,7° | +6,7° ✓ | 1 | gen1 |
+| `zattera_iso_09.png` | 199,5° (centro→albero 205,5°) | 230,4° | **−30,8°** | 7 | gen1 |
+| `zattera_iso_11.png` | 324,6° (centro→albero 329,5°) | 309,6° | **+15,0°** | 6 | gen1 |
+| `zattera_iso_13.png` | 328,7° (centro→albero 331,8°) | 348,3° | **−19,6°** | 5 | lottoc2 (generazione fresca, prompt rafforzato) |
+| `zattera_iso_15.png` | 9,1° (centro→albero 19,9°) | 11,7° | −2,6° ✓ | 3 | lottoc3 (ripresa da gen1, −13° richiesti) |
+
+Verifica in `scheda_lotto_c.png` (8 viste sul mare vero con parallelogramma impronta e punti-base attesi in giallo + striscia con la sequenza completa 00→15 per giudicare il flusso di rotazione). Posizioni oggetti misurate sui finali (u,v) vs guida M (1,04; −0,10) · T (−0,76; +0,18) · C (0; +0,41) · R (−0,78; −0,80) · V (−0,50; −0,85):
+- **01**: M (+1,19; −0,08) ✓, T (−0,88; +0,03), C (+0,12; +0,42) ✓, R (−0,83; −0,47), V (−0,64; −0,55) — taniche ~0,3 in v dalla guida.
+- **03**: M (+1,16; +0,32), T (−0,87; −0,16), C (−0,07; +0,45) ✓, R (−0,27; −0,15), V (+0,25; −0,15) — taniche lontane dalla guida (~0,8 tessere, al centro ponte invece che a poppa).
+- **05**: M (+1,19; −0,39), T (−0,69; +0,17) ✓, C (+0,36; +0,55), R (−0,34; −0,34), V (−0,62; −0,32) — taniche ~0,5 dalla guida.
+- **07**: M (+1,10; +0,42), T (−0,73; +0,06), C (+0,13; +0,86), R (−0,21; −0,41), V (+0,01; −0,47) — cassa e taniche spostate ~0,4–0,5 verso il centro.
+- **09**: M (+1,04; −0,46), T (−0,50; +0,51), C (+0,70; +0,51), R (−0,40; −0,13), V (−0,29; −0,33) — tenda e cassa ~0,5–0,7 verso prua/centro, taniche ~0,6 dalla guida.
+- **11**: M (+1,03; +0,33), T (−0,91; −0,10), C (−0,99; +0,21), R (+0,03; +0,50), V (−0,10; +0,31) — cassa ~1,0 tessere verso poppa (vicina alla tenda), taniche ~1,3–1,5 dalla guida (al centro ponte).
+- **13**: M (+0,99; −0,45), T (−0,70; +0,45), C (−0,56; +0,87), R (+0,33; +0,35), V (+0,10; +0,31) — cassa ~0,7 verso poppa, taniche ~1,1–1,2 dalla guida.
+- **15**: M (+1,14; +0,27), T (−0,53; +0,41), C (+0,10; +0,50) ✓, R (−0,57; −0,83) ✓, V (−0,37; −0,89) ✓ — la più vicina alla guida in tutte le posizioni.
+
+Limiti dichiarati del lotto C:
+- **Prua fuori criterio in 03 (+15,6°), 09 (−30,8°), 11 (+15,0°), 13 (−19,6°)**: nella sequenza 00→15 la rotazione rallenta visibilmente in 08→09 (la 09 è quasi ferma sull'angolo della 08, poi salto alla 10) e in 12→13 (la 13 è quasi ferma sull'angolo della 12, poi salto alla 14); 02→03→04 e 10→11→12 scorrono più lenti del passo nominale. Le 4 viste in criterio (01, 05, 07, 15) scorrono regolari.
+- **Taniche le meno precise** (come già nel lotto B, ma qui di più): in 03/11/13 stanno al centro ponte invece che al bordo di poppa (scarti fino a ~1,5 tessere in 11); in 09/05/07 ~0,5–0,6. Ordine rosso/verde sempre corretto (rossa sempre verso poppa rispetto alla verde, come da guida).
+- **Cassa spostata verso poppa** in 11 (−0,99 in u, vicina alla tenda) e in 13 (−0,56 in u); in 09 spostata verso prua (+0,70 in u).
+- **Scale di montaggio** limitate dall'altezza in tela (albero alto + assito): s 0,341–0,447, quindi le dispari risultano un poco più piccole delle pari in tela (assito ~73–93% dell'area impronta); bbox forte con centro x 344,5–356 e y max 504–507.
+- **Scarti**: 09-lottoc4 (generazione con solo pannello guida, senza viste vicine) aveva un altro disegno — albero a croce con vela orizzontale, barili di legno, tenda diversa con tiranti — e le sue riprese c5/c6: scartate, non usate. 05-gen1 aveva un telone blu sotto la tenda e un tappeto marrone sul ponte: scartata, sostituita dalla c2 pulita. Il resume di 13-lottoc2 per un 5° tentativo ha dato `invalid_resume_id` (non ripetuto).
+
 ## Disposizione a bordo (dalla RICHIESTA)
 Coordinate in tessere (u = verso prua, v = a destra guardando la prua): albero (1,04 ; −0,10) · tenda (−0,76 ; +0,18), ingresso verso prua · cassa (0 ; +0,41) · tanica rossa (−0,78 ; −0,80) · tanica verde (−0,50 ; −0,85). Nel lotto A le posizioni sono quelle dei disegni approvati iso 3; nel lotto B sono state chieste ai punti esatti della guida in generazione e le deviazioni residue sono quelle misurate sopra (il generatore non piazza gli oggetti con precisione sub-tessera: deviazioni tipiche 0,2–0,6 tessere, taniche le meno precise).
 
+## Nota di caricamento
+- `scheda_lotto_c.png` è caricata in 2 parti `scheda_lotto_c.png.b64.1` + `scheda_lotto_c.png.b64.2` (limite di dimensione del singolo invio): concatenare in ordine e decodificare per ricostruire il PNG originale.
+
 ## Cosa manca
-- **Lotto C**: viste dispari 01, 03, 05, 07, 09, 11, 13, 15.
 - **Palo v2** (citato nella RICHIESTA): non fa parte di questi lotti.
 
-STATO: pronto (lotti A+B)
+STATO: pronto (16 viste)
