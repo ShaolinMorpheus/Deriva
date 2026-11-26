@@ -4,30 +4,64 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Deriva</title>
+<link rel="icon" href="data:,">
 <style>
   html,body{margin:0;height:100%;background:#2b4a56;overflow:hidden;overscroll-behavior:none;touch-action:none;
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
     font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
   #sea{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
-  #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;z-index:2}
   .wv{position:fixed;left:0;top:0;z-index:1;pointer-events:none;display:none;will-change:transform,opacity;background-repeat:repeat}
+  #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;z-index:2}
   #ver{position:fixed;z-index:3;left:0;right:0;bottom:calc(4px + env(safe-area-inset-bottom));text-align:center;
     font:600 12px/1 system-ui,sans-serif;color:#eaf4f1;opacity:.85;text-shadow:0 1px 2px #000b;padding:10px 0;cursor:pointer}
   #dbg{position:fixed;z-index:3;left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));
     font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#eaf4f1;background:#0a1c2299;padding:6px 8px;
     border-radius:6px;white-space:pre;pointer-events:none}
+  #act{position:fixed;right:calc(26px + env(safe-area-inset-right));bottom:calc(36px + env(safe-area-inset-bottom));z-index:3;display:none;
+    width:86px;height:86px;border-radius:50%;border:2px solid #ffffffaa;background:#0a1c22d9;color:#eaf4f1;
+    font:700 16px/1 system-ui,sans-serif;touch-action:manipulation;box-shadow:0 2px 10px #0008}
+  #act:active{background:#1d4a58}
+  #zoom{position:fixed;right:calc(14px + env(safe-area-inset-right));top:34%;z-index:3;display:flex;flex-direction:column;gap:8px}
+  #zoom button{width:46px;height:46px;border-radius:50%;border:1.5px solid #ffffff77;background:#0a1c22b8;color:#eaf4f1;font:700 24px/1 system-ui,sans-serif;padding:0;touch-action:manipulation}
+  #zoom button:active{background:#1d4a58}
   #rot{position:fixed;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;justify-content:center;
     background:#1c3038f2;color:#eaf4f1;text-align:center;font:600 18px/1.4 system-ui,sans-serif}
   #rot b{font-size:56px;line-height:1;margin-bottom:12px;font-weight:400}
   #load{position:fixed;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;background:#1c3038;
     color:#eaf4f1;font:600 16px/1.4 system-ui,sans-serif;text-align:center;padding:0 24px}
+  #menuBtn{position:fixed;right:calc(14px + env(safe-area-inset-right));top:calc(10px + env(safe-area-inset-top));z-index:4;width:46px;height:46px;border-radius:50%;
+    border:1.5px solid #ffffff77;background:#0a1c22b8;color:#eaf4f1;font:700 22px/1 system-ui,sans-serif;padding:0;touch-action:manipulation}
+  #menuBtn:active{background:#1d4a58}
   #upd{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);z-index:4;display:none;
     background:#e8b04a;color:#2a1a08;font:700 13px/1 system-ui,sans-serif;padding:10px 14px;border-radius:18px;cursor:pointer}
-  #prova{position:fixed;right:calc(8px + env(safe-area-inset-right));top:calc(8px + env(safe-area-inset-top));z-index:3;
-    display:flex;flex-direction:column;gap:6px;align-items:flex-end}
-  #prova button{font:700 12px/1 system-ui,sans-serif;color:#eaf4f1;background:#0a1c22cc;border:1px solid #ffffff44;border-radius:14px;
-    padding:10px 12px;min-width:140px;text-align:left;touch-action:manipulation}
-  #hint{position:fixed;z-index:3;left:0;right:0;top:34%;text-align:center;font:600 15px/1.3 system-ui,sans-serif;color:#fff;
+  #toast{position:fixed;left:50%;bottom:calc(46px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9;background:#0a1c22ee;color:#eaf4f1;
+    padding:8px 14px;border-radius:18px;font:600 13px/1.2 system-ui,sans-serif;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
+  #pnl{position:fixed;inset:0;z-index:8;display:none;align-items:center;justify-content:center;background:#0a1418cc;box-sizing:border-box;
+    padding:calc(6px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+  #card{width:min(660px,100%);max-height:100%;display:flex;flex-direction:column;background:#1c3038;border:1.5px solid #ffffff44;border-radius:14px;
+    color:#eaf4f1;font:14px/1.35 system-ui,sans-serif;overflow:hidden}
+  #chead{display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid #ffffff22}
+  #tabs{display:flex;flex:1;gap:4px}
+  #tabs button{flex:1;min-height:38px;border-radius:9px;border:1px solid transparent;background:transparent;color:#cfe3de;font:600 14px system-ui,sans-serif;touch-action:manipulation;padding:0 4px}
+  #tabs button.on{background:#2b4a56;border-color:#ffffff55;color:#fff}
+  #cbody{overflow:auto;padding:8px 12px 12px;-webkit-overflow-scrolling:touch;touch-action:pan-y;-webkit-user-select:text;user-select:text}
+  #cbody .h{font-weight:700;margin:10px 0 2px;color:#e8b04a}
+  #cbody .note{font-size:12.5px;color:#b8cdc8;margin:2px 0 6px}
+  #cbody .row{display:flex;gap:6px;align-items:center;margin:5px 0;flex-wrap:wrap}
+  #cbody .info{flex:1;min-width:130px;display:flex;flex-direction:column}
+  #cbody .info span{font-size:12.5px;color:#b8cdc8}
+  .btn{min-height:38px;padding:0 12px;border-radius:9px;border:1px solid #ffffff55;background:#2b4a56;color:#eaf4f1;font:600 14px system-ui,sans-serif;touch-action:manipulation;text-decoration:none;display:inline-flex;align-items:center}
+  .btn:active{background:#3b6a78}
+  .btn.warn{border-color:#e8b04a99;color:#f3d79a}
+  .btn.go{background:#3f8a7a;border-color:#7fd1bf}
+  .seg{display:flex;border:1px solid #ffffff55;border-radius:9px;overflow:hidden}
+  .seg button{min-height:36px;padding:0 11px;border:0;border-right:1px solid #ffffff33;background:transparent;color:#eaf4f1;font:600 13.5px system-ui,sans-serif;touch-action:manipulation}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:#3f8a7a;color:#fff}
+  input.code{flex:1;min-width:150px;min-height:36px;border-radius:8px;border:1px solid #ffffff55;background:#10222a;color:#eaf4f1;font:13px ui-monospace,Menlo,Consolas,monospace;padding:0 8px}
+  #cbody pre{white-space:pre-wrap;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#d6e6e2;margin:6px 0}
+  #cbody .nov b{color:#e8b04a}
+  #hint{position:fixed;z-index:3;left:0;right:0;top:30%;text-align:center;font:600 15px/1.3 system-ui,sans-serif;color:#fff;
     text-shadow:0 1px 3px #000c;pointer-events:none;transition:opacity 1.2s}
 </style>
 </head>
@@ -36,350 +70,460 @@
 <div class="wv" id="wv0"></div><div class="wv" id="wv1"></div><div class="wv" id="wv2"></div><div class="wv" id="wv3"></div>
 <canvas id="game"></canvas>
 <div id="dbg"></div>
-<div id="prova"><button data-k="onde"></button><button data-k="blu"></button><button data-k="var"></button></div>
-<div id="hint">Tocca a sinistra e trascina per navigare</div>
+<button id="act"></button>
+<button id="menuBtn" aria-label="Menu">☰</button>
+<div id="zoom"><button id="zin" aria-label="Avvicina">+</button><button id="zout" aria-label="Allontana">−</button></div>
+<div id="hint">Tocca a sinistra e trascina per camminare<br>Vai al bordo del pontile e sali sulla zattera</div>
 <div id="rot"><b>⟳</b>Ruota il telefono<br>in orizzontale</div>
 <div id="load">Carico la grafica…</div>
 <div id="upd">Nuova versione: tocca per aggiornare</div>
+<div id="toast"></div>
+<div id="pnl"><div id="card"><div id="chead"><div id="tabs"></div><button class="btn" id="cx" aria-label="Chiudi">✕</button></div><div id="cbody"></div></div></div>
 <div id="ver"></div>
 <script>
 'use strict';
 /* ===========================================================================
-   DERIVA — prototipo. Tutti i numeri da regolare stanno qui, in CFG.
+   DERIVA — motore isometrico (v0.2h): è il gioco. Il gioco di prima (v0.1b.8, dall'alto) sta in storico/ ed è raggiungibile dal menu.
+   Geometria di Muse (vincolante): rombo 2:1, tessera = PNG 256x256, passo di griglia (128,64) px PNG.
+   Qui tutto è in «px PNG» (1:1 con i disegni); ART = px CSS per px PNG; la scala sul telefono è S = ART * dpr.
+   Coordinate di terra (i,j) in tessere, centro-tessera = intero: schermo x = (i-j)*128, y = (i+j)*64 (piano del ponte).
+   i cresce verso SE (giù-destra), j verso SO (giù-sinistra). Il mare sta WO px PNG sotto il piano del ponte.
    =========================================================================== */
-//#region config
 const CFG = {
-  VERSION: 'v0.1b.8',
-  SEED: 12345,            // seed fissa di prova: stesso mondo per tutti i test
-  TILE: 64,               // px per tessera (in gioco). I PNG di Muse sono a 4x: 256 px
-  CHUNK: 16,              // tessere per lato di un chunk (16x16 -> 1024 px)
-  ACTIVE_R: 1,            // raggio dei chunk attivi: 1 -> 3x3
-  DEPTH_SCALE: 14,        // dimensione delle "macchie" di profondità, in tessere
-  SLICK_P: 0.12,          // probabilità di una chiazza di prova per chunk
-  SLICK_PETROLIO: 0.35,   // di queste, quota di «petrolio» (le altre sono «acqua»)
-  SLICK_PERIOD: 1.2,      // secondi tra un fotogramma e l'altro della chiazza (2 fotogrammi)
-  SLICK_FADE: 0.6,        // secondi di dissolvenza incrociata dentro quel periodo
-  SLICK_DRIFT: 1.5,       // deriva in px (0 = ferma del tutto)
-  BLUE_A: 0.40,           // tocchi di mare azzurro/blu per dare profondità: opacità massima (0 = spenti)
-  BLUE_RGB: [56, 98, 142],// colore (desaturato, nel registro di Muse)
-  BLUE_SCALE: 16,         // grandezza delle zone, in tessere (più alto = zone più larghe)
-  BLUE_LO: 0.58,          // soglia di rumore da cui inizia il blu
-  BLUE_HI: 0.76,          // soglia a cui il blu è pieno
-  BLUE_DEPTH: 0.22,       // quanto il mare fondo ne ha di più (e il basso di meno)
-  MARE_ONDE: 3,           // movimento del mare: 0 spento, 1 provvisorio di Claude, 2 overlay di Muse, 3 mix dei due (si cambia in gioco)
-  MARE_BLU: 2,            // profondità blu: 0 spenta, 1 velo di Claude (in codice), 2 tessere blu di Muse
-  MARE_VAR: 0,            // 1 = alterna le tessere a/b di Muse per spezzare la ripetizione, 0 = solo a
-  ONDE_A1: 0.8,           // overlay di Muse: opacità 1° strato
-  ONDE_A2: 0.55,          // idem 2° strato (stessa orientazione, più largo, scorre in un'altra direzione)
-  FLOW_A1: 0.30,          // mare in movimento: forza del 1° strato di luce scorrevole (0 = mare fermo)
-  FLOW_A2: 0.24,          // idem, 2° strato (più largo, direzione diversa)
-  FLOW_SPEED: 1.0,        // velocità dello scorrimento (1 = normale, 2 = doppia)
-  RAFT_SPEED: 4,          // tessere al secondo, a joystick tutto spinto
-  RAFT_ACCEL: 6,          // tessere/s^2 in accelerazione
-  RAFT_BRAKE: 9,          // tessere/s^2 quando rilasci il joystick (si ferma in ~0,5 s)
-  RAFT_TURN: 3.4,         // rad/s di virata
-  STICK_R: 58,            // raggio del joystick, in px CSS
-  STICK_DEAD: 0.12,       // zona morta (0-1)
-  JOY_ZONE: 0.55,         // il joystick nasce solo nel 55% sinistro dello schermo (a destra: azioni)
-  LOOKAHEAD: 0.45         // la camera guarda avanti di tot secondi di corsa (0 = camera fissa sulla zattera)
+  VERSION: 'v0.2h',
+  ART: 0.3,               // px CSS per px PNG = zoom (si cambia coi bottoni + / −; 0.25 = stessa scala del gioco v0.1b.8, 0.5 = quella delle prove 0.2a-d)
+  ZOOM_STEPS: [0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6],   // valori di ART dei bottoni
+  WO: 64,                 // il livello del mare sta tanti px PNG sotto il piano del ponte (spessore delle facce)
+  WALK_SPEED: 110,        // px CSS/s sullo schermo, joystick tutto spinto (a piedi); era 130 con il rimbalzo provvisorio: col ciclo vero i piedi pattinavano
+  WALK_CYCLE: 118,        // px PNG di spostamento sullo schermo per un ciclo completo di 6 fotogrammi (≈ 2 passi): i piedi appoggiati non pattinano
+  SAIL_SPEED: 210,        // px CSS/s sullo schermo (in zattera)
+  SAIL_ACCEL: 2.6,        // 1/s: quanto in fretta la zattera prende/perde velocità
+  RAFT_TURN: 3.2,         // rad/s: quanto in fretta la zattera gira verso la direzione del joystick
+  RAFT_AVAIL: [0, 4, 8, 12],   // viste della zattera consegnate da Muse (numero k = prua a k·22,5°; cartella assets/iso/mezzi/zattera16/, tela 704x512, centro impronta a (352,336)). Lotto A = 0,4,8,12; B = 2,6,10,14; C = dispari. Il motore usa 4, 8 o 16 viste secondo quelle che ci sono.
+  RAFT_VIEWS: 16,         // massimo di viste da usare (si può abbassare con ?viste=4|8 per confrontare)
+  RAFT_FADE: 1,           // 1 = sfuma fra le due viste vicine mentre gira (0 = salto netto fra le 4 viste)
+  PR: 0.2,                // raggio dei piedi del protagonista, in tessere
+  STICK_R: 58, STICK_DEAD: 0.12, JOY_ZONE: 0.55,
+  CAM_EASE: 7,            // 1/s: morbidezza della camera
+  ONDE_A1: 0.8, ONDE_A2: 0.55,        // overlay onde di Muse: opacità dei 2 strati
+  FLOW_A1: 0.30, FLOW_A2: 0.24, FLOW_SPEED: 1.0,   // luce scorrevole di Claude (come nel gioco v0.1b.8)
+  SEED: 12345, DEPTH_SCALE: 14,       // mare: seed e grandezza delle zone di profondità (in tessere)
+  BLUE_A: 0.40, BLUE_RGB: [56, 98, 142], BLUE_SCALE: 16, BLUE_LO: 0.58, BLUE_HI: 0.76, BLUE_DEPTH: 0.22,
+  SLICK_P: 0.12, SLICK_PETROLIO: 0.35, SLICK_PERIOD: 1.2, SLICK_FADE: 0.6, SLICK_DRIFT: 1.5   // chiazze d'olio
 };
-//#endregion config
+const SHAPE = 128, ST = 64;               // passo di griglia PNG: (128, 64)
+const PX = (i, j) => [(i - j) * 128, (i + j) * 64];
 
-/* ===========================================================================
-   MONDO — solo funzioni pure su interi/numeri: niente Math.random, niente seno.
-   Stessa seed + stesse coordinate = stesso risultato su ogni telefono.
-   (Il sistema vero a chunk + rumore: lo scheletro 0.1a di Muse lo dava per la 0.1b, qui è già questo.)
-   =========================================================================== */
-//#region world
-function hash2(x, y, s) {
-  let h = (Math.imul(x | 0, 0x27d4eb2d) + Math.imul(y | 0, 0x165667b1) + Math.imul(s | 0, 0x9e3779b1)) | 0;
-  h = Math.imul(h ^ (h >>> 15), 0x85ebca6b);
-  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
-  h ^= h >>> 16;
-  return (h >>> 0) / 4294967296;            // [0,1)
-}
-function vnoise(x, y, s) {                  // value noise, interpolazione morbida
-  const xi = Math.floor(x), yi = Math.floor(y);
-  const fx = x - xi, fy = y - yi;
-  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
-  const a = hash2(xi, yi, s), b = hash2(xi + 1, yi, s), c = hash2(xi, yi + 1, s), d = hash2(xi + 1, yi + 1, s);
-  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
-}
-function fbm(x, y, s) {                     // 3 ottave
-  let sum = 0, amp = 0.5, f = 1, norm = 0;
-  for (let o = 0; o < 3; o++) {
-    sum += amp * vnoise(x * f + o * 17.3, y * f - o * 9.1, s + o * 7919);
-    norm += amp; amp *= 0.5; f *= 2.03;
+// ---- grafica ------------------------------------------------------------------
+const IMG_LIST = {
+  mare: 'assets/iso/mare/mare_medio_a.png', mare0: 'assets/iso/mare/mare_basso_a.png', mare2: 'assets/iso/mare/mare_fondo_a.png',
+  mare1blu: 'assets/iso/mare/mare_medio_blu.png', mare2blu: 'assets/iso/mare/mare_fondo_blu.png', onde: 'assets/iso/onde/onde_overlay.png',
+  olio1: 'assets/iso/olio/macchia_olio_1.png', olio2: 'assets/iso/olio/macchia_olio_2.png', petr1: 'assets/iso/olio/macchia_petrolio_1.png', petr2: 'assets/iso/olio/macchia_petrolio_2.png',
+  pa: 'assets/iso/pezzi/ponte_iso_a.png', pb: 'assets/iso/pezzi/ponte_iso_b.png', pc: 'assets/iso/pezzi/ponte_iso_c.png',
+  buco: 'assets/iso/pezzi/ponte_iso_buco.png', wa: 'assets/iso/pezzi/pontile_iso_a.png', wb: 'assets/iso/pezzi/pontile_iso_b.png',
+  fse: 'assets/iso/pezzi/faccia_se.png', fso: 'assets/iso/pezzi/faccia_so.png',
+  fwse: 'assets/iso/pezzi/faccia_legno_se.png', fwso: 'assets/iso/pezzi/faccia_legno_so.png',
+  bne: 'assets/iso/pezzi/bordo_ne.png', bno: 'assets/iso/pezzi/bordo_no.png', ban: 'assets/iso/pezzi/bordo_angolo_nord.png',
+  palo: 'assets/iso/pezzi/palo_iso.png',
+  derrick: 'assets/iso/oggetti/derrick_iso.png', pozzo: 'assets/iso/oggetti/testa_pozzo_iso.png', serb: 'assets/iso/oggetti/serbatoio_iso.png',
+  cOcra: 'assets/iso/oggetti/container_ocra_iso.png', cRug: 'assets/iso/oggetti/container_ruggine_iso.png', cVer: 'assets/iso/oggetti/container_verde_iso.png',
+  bar: 'assets/iso/oggetti/baracca_iso.png', gru: 'assets/iso/oggetti/gru_iso.png',
+  tDr: 'assets/iso/oggetti/tubo_dritto_iso.png', tCu: 'assets/iso/oggetti/tubo_curva_iso.png', tT: 'assets/iso/oggetti/tubo_t_iso.png',
+  zne: 'assets/iso/mezzi/zattera_iso_ne.png', zse: 'assets/iso/mezzi/zattera_iso_se.png', zso: 'assets/iso/mezzi/zattera_iso_so.png', zno: 'assets/iso/mezzi/zattera_iso_no.png',
+  pne: 'assets/iso/mezzi/protagonista_iso_ne.png', pse: 'assets/iso/mezzi/protagonista_iso_se.png', pso: 'assets/iso/mezzi/protagonista_iso_so.png', pno: 'assets/iso/mezzi/protagonista_iso_no.png'
+};
+const WALK_N = 6;                          // camminata: 6 fotogrammi x 4 direzioni (Gruppo iso 4), tela 70x108, piedi in (35,104)
+for (const d of ['ne', 'se', 'so', 'no']) for (let n = 1; n <= WALK_N; n++) IMG_LIST['w' + d + n] = 'assets/iso/mezzi/camminata/protagonista_iso_' + d + '_passo' + n + '.png';
+const I = {};
+const RAFT = { n: 4, views: [], win: [0.38, 0.62] };               // viste della zattera in uso: {im, ox, oy} = angolo in alto a sinistra rispetto al centro dell'impronta (a livello dell'acqua)
+const RAFT_BOTTOM = { ne: 468, se: 405, so: 401, no: 461 };      // 4 viste: riga (sotto l'ultima visibile) = vertice S dell'impronta
+function loadOne(src) { return new Promise(res => { const im = new Image(); im.onload = () => { (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => res(im)); }; im.onerror = () => res(null); im.src = src; }); }
+async function setupRaftViews() {
+  const q = new URLSearchParams(location.search).get('viste') || (T('viste') !== 'auto' ? T('viste') : null); if (q) CFG.RAFT_VIEWS = +q;
+  const av = new Set(CFG.RAFT_AVAIL);
+  for (const n of [16, 8, 4]) {                   // il numero più alto di viste, fra quelle consegnate, che formano un giro regolare
+    if (n > CFG.RAFT_VIEWS) continue;
+    const ks = []; for (let k = 0; k < 16; k += 16 / n) ks.push(k);
+    if (!ks.every(k => av.has(k))) continue;
+    const ims = await Promise.all(ks.map(k => loadOne('assets/iso/mezzi/zattera16/zattera_iso_' + String(k).padStart(2, '0') + '.png')));
+    if (!ims.every(Boolean)) { console.warn('viste della zattera mancanti per n=' + n); continue; }
+    RAFT.n = n; RAFT.views = ims.map(im => ({ im, ox: -352, oy: -336 })); RAFT.win = n >= 16 ? [0, 1] : n === 8 ? [0.2, 0.8] : [0.38, 0.62]; return;
   }
-  return sum / norm;                        // ~[0,1]
+  RAFT.n = 4; RAFT.win = [0.38, 0.62];            // ripiego: le 4 diagonali del Gruppo iso 3
+  RAFT.views = ['se', 'so', 'no', 'ne'].map(n => ({ im: I['z' + n], ox: -320, oy: 160 - RAFT_BOTTOM[n] }));
 }
-const DEPTH_T = [0.36, 0.46, 0.55, 0.66];
-function levelFromNoise(d) {                // 0 = basso, 1 = medio, 2 = fondo (continuo)
-  const t = DEPTH_T;
-  if (d <= t[0]) return 0;
-  if (d < t[1]) return (d - t[0]) / (t[1] - t[0]);
-  if (d <= t[2]) return 1;
-  if (d < t[3]) return 1 + (d - t[2]) / (t[3] - t[2]);
-  return 2;
-}
-function depthL(txf, tyf, seed) {           // profondità a coordinate di tessera (anche frazionarie)
-  return levelFromNoise(fbm(txf / CFG.DEPTH_SCALE, tyf / CFG.DEPTH_SCALE, seed));
-}
-function slickAt(cx, cy, seed) {            // chiazze di PROVA (posizioni fisse dalla seed): lista, vuota se il chunk non ne ha.
-  const CH = CFG.CHUNK * CFG.TILE;          // kind 0 = «acqua» (leggera), 1 = «petrolio» (più scura: zone inquinate)
-  if (cx === 0 && cy === 0) return [        // una di ogni tipo vicino alla partenza, per vederle
-    { x: CH / 2 + 230, y: CH / 2 - 110, ph: 0.3, kind: 0 },
-    { x: CH / 2 - 250, y: CH / 2 + 120, ph: 2.1, kind: 1 }
-  ];
-  if (hash2(cx, cy, seed + 777) >= CFG.SLICK_P) return [];
-  return [{
-    x: cx * CH + 200 + hash2(cx, cy, seed + 778) * (CH - 400),
-    y: cy * CH + 200 + hash2(cx, cy, seed + 779) * (CH - 400),
-    ph: hash2(cx, cy, seed + 780) * 8,
-    kind: hash2(cx, cy, seed + 781) < CFG.SLICK_PETROLIO ? 1 : 0
-  }];
-}
-function blueAt(txf, tyf, depth, seed) {     // 0..1: quanto «blu di profondità» in un punto (coordinate di tessera). Deterministico, fisso nel mondo.
-  const n = fbm(txf / CFG.BLUE_SCALE, tyf / CFG.BLUE_SCALE, seed + 4242) + (depth - 1) * CFG.BLUE_DEPTH;
-  const u = Math.max(0, Math.min(1, (n - CFG.BLUE_LO) / (CFG.BLUE_HI - CFG.BLUE_LO)));
-  return u * u * (3 - 2 * u);
-}
-function makeChunk(cx, cy, seed) {          // dati di un chunk
-  const N = CFG.CHUNK, L = new Float32Array(N * N);   // profondità al centro di ogni tessera (per il gioco)
-  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) L[j * N + i] = depthL(cx * N + i + 0.5, cy * N + j + 0.5, seed);
-  return { cx: cx, cy: cy, L: L, slicks: slickAt(cx, cy, seed) };
-}
-//#endregion world
-
-/* ===========================================================================
-   GIOCO
-   =========================================================================== */
-const BUILD = '__BUILD__';                  // lo sostituisce la pubblicazione su GitHub Pages; nell'anteprima resta com'è
-const cv = document.getElementById('game');            // sopra: zattera, scia, chiazze, joystick (trasparente)
-const ctx = cv.getContext('2d');
-const sv = document.getElementById('sea');             // sotto: il mare (opaco); in mezzo, gli strati d'onda (DOM, li muove la GPU)
-const sctx = sv.getContext('2d', { alpha: false });
-const dbgEl = document.getElementById('dbg');
-const verEl = document.getElementById('ver');
-const hintEl = document.getElementById('hint');
-const loadEl = document.getElementById('load');
-let W = 0, H = 0, dpr = 1;
-
-const CHK = CFG.TILE * CFG.CHUNK;           // lato chunk in px mondo (1024)
-
-// ---- grafica di Muse (PNG a 4x la misura in gioco) -----------------------------
-const ASSETS = {
-  mare0: 'assets/mare/mare_basso_a.png',
-  mare1: 'assets/mare/mare_medio_a.png',
-  mare2: 'assets/mare/mare_fondo_a.png',
-  zattera: 'assets/zattera/zattera_base.png',     // prua = lato corto SINISTRO (dal LEGGIMI di Muse)
-  olio1: 'assets/olio/macchia_olio_1.png',
-  olio2: 'assets/olio/macchia_olio_2.png',
-  mare0b: 'assets/mare/mare_basso_b.png',
-  mare1b: 'assets/mare/mare_medio_b.png',
-  mare2b: 'assets/mare/mare_fondo_b.png',
-  mare1blu: 'assets/mare/mare_medio_blu.png',
-  mare2blu: 'assets/mare/mare_fondo_blu.png',
-  onde: 'assets/onde/onde_overlay.png',
-  petr1: 'assets/olio/macchia_petrolio_1.png',
-  petr2: 'assets/olio/macchia_petrolio_2.png'
-};
-const A = {};
-function loadAssets() {
-  return Promise.all(Object.keys(ASSETS).map(k => new Promise((res, rej) => {
+function loadImages() {
+  return Promise.all(Object.keys(IMG_LIST).map(k => new Promise((res, rej) => {
     const im = new Image();
-    im.onload = () => { (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => { A[k] = im; res(); }); };
-    im.onerror = () => rej(new Error('manca ' + ASSETS[k]));
-    im.src = ASSETS[k];
+    im.onload = () => { (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => { I[k] = im; res(); }); };
+    im.onerror = () => rej(new Error('manca ' + IMG_LIST[k]));
+    im.src = IMG_LIST[k];
   })));
 }
 
-// ---- stato ----------------------------------------------------------------
-const raft = { x: CHK / 2, y: CHK / 2, h: 0, speed: 0 };
-const cam = { x: raft.x, y: raft.y };
-const lead = { x: 0, y: 0 };                // anticipo della camera nella direzione di marcia
-let portrait = false;                       // il gioco è pensato in orizzontale
-let ready = false;
-const ctrl = { mag: 0, ang: 0 };
-const stick = { id: null, ox: 0, oy: 0, x: 0, y: 0, active: false };
-const keys = { left: 0, right: 0, up: 0, down: 0 };
-const trail = [];
-const chunks = new Map();
-const stats = { msSea: 0, msFlow: 0, msAll: 0, t: 0, dist: 0, genMs: 0, genMax: 0, loaded: 0 };
-let trailTimer = 0;
-let dbgMode = 1;                            // 0 nascosto, 1 info, 2 info + griglia chunk
+// ---- mondo di prova ---------------------------------------------------------------
+// Piattaforma: ponte d'acciaio i 0..9, j 0..5; pontile di legno j 6..7. Un buco in (5,2).
+const GI = 9, GJ_STEEL = 5, GJ = 7, HOLE = [5, 2];
+const GRID = new Map();                    // "i,j" -> 'a'|'b'|'c' (acciaio), 'w' (legno), 'h' (buco)
+function hash(i, j) { let h = (Math.imul(i * 7919 + 13, 0x27d4eb2d) ^ Math.imul(j * 104729 + 7, 0x165667b1)) | 0; h = Math.imul(h ^ (h >>> 15), 0x85ebca6b); h ^= h >>> 13; return (h >>> 0) / 4294967296; }
+for (let i = 0; i <= GI; i++) for (let j = 0; j <= GJ; j++) {
+  let t;
+  if (j > GJ_STEEL) t = 'w' + (hash(i, j) < 0.5 ? 'a' : 'b');
+  else if (i === HOLE[0] && j === HOLE[1]) t = 'h';
+  else { const h = hash(i, j); t = h < 0.34 ? 'pa' : h < 0.67 ? 'pb' : 'pc'; }
+  GRID.set(i + ',' + j, t);
+}
+const cellAt = (i, j) => GRID.get(Math.floor(i + 0.5) + ',' + Math.floor(j + 0.5));
+const walkableAt = (i, j) => { const c = cellAt(i, j); return !!c && c !== 'h'; };
 
-// ---- ridimensionamento -------------------------------------------------------
+// Oggetti. (ci,cj) = centro dell'impronta; sw = W+D usato da Muse per l'ancoraggio; rect = ingombro reale (tessere); ombra = lunghezza dell'ombra verso SE.
+const OBJS = [];
+function addObj(img, ci, cj, sw, ex, ey, opt) {          // ex, ey = estensione reale lungo i e lungo j
+  const o = Object.assign({ img, ci, cj, sw, solid: true, sh: 0.5, rect: { i0: ci - ex / 2, i1: ci + ex / 2, j0: cj - ey / 2, j1: cj + ey / 2 } }, opt || {});
+  OBJS.push(o); return o;
+}
+const START = { p: { i: 5, j: 7 }, r: { i: 6.5, j: 8.65 } };       // partenza della disposizione in uso
+function buildWorld() {
+  if (T('layout') === 'vecchia') {          // disposizione di v0.2f (prima della revisione), tenuta per confronto in «Grafica di prova»
+    START.p = { i: 4, j: 7 }; START.r = { i: 4.5, j: 8.65 };
+    addObj(I.derrick, 3, 1, 2, 1, 1, { sh: 1.5 });
+    addObj(I.pozzo, 6, 1, 2, 1, 1, { sh: 0.5 });
+    addObj(I.serb, 8.2, 1.5, 2.6, 1.3, 1.3, { sh: 0.6 });
+    addObj(I.gru, 0.5, 3.3, 5.5, 1, 4.5, { sh: 0.7 });
+    addObj(I.bar, 2.7, 4.3, 2.6, 1.3, 1.3, { sh: 0.8 });
+    addObj(I.cOcra, 5.3, 3.9, 4, 2.3, 1.5, { sh: 0.9 });
+    addObj(I.cVer, 8.2, 4.5, 4, 2.3, 1.5, { sh: 0.9 });
+    addObj(I.tDr, 4.2, 5.2, 1, 0.5, 0.5, { solid: false, sh: 0.1 });
+    addObj(I.tCu, 7.4, 2.9, 1, 0.5, 0.5, { solid: false, sh: 0.1 });
+    addObj(I.tT, 5.9, 2.4, 1, 0.5, 0.5, { solid: false, sh: 0.1 });
+  } else {
+    // Avamposto sul pozzo. Le cose alte stanno dietro (nord = i+j piccolo), quelle basse davanti, così non coprono chi cammina.
+    addObj(I.gru, 0.5, 1.3, 5.5, 1, 4.5, { sh: 0.7 });          // gru sul bordo NO: il braccio sporge sul mare a NE (recupero dal mare)
+    addObj(I.cOcra, 2.8, 0.9, 4, 2.3, 1.5, { sh: 0.9 });        // magazzino
+    addObj(I.cVer, 2.8, 2.6, 4, 2.3, 1.5, { sh: 0.9 });         // magazzino (accanto al primo)
+    addObj(I.derrick, 5, 0.8, 2, 1, 1, { sh: 1.5 });            // torre di perforazione, dietro al foro nel ponte
+    addObj(I.pozzo, 6.5, 0.9, 2, 1, 1, { sh: 0.5 });            // testa del pozzo
+    addObj(I.tDr, 6.5, 1.9, 1, 0.5, 0.5, { solid: false, sh: 0.1 });   // tubi dal pozzo al serbatoio
+    addObj(I.tDr, 6.5, 2.8, 1, 0.5, 0.5, { solid: false, sh: 0.1 });
+    addObj(I.tT, 6.5, 3.6, 1, 0.5, 0.5, { solid: false, sh: 0.1 });
+    addObj(I.serb, 6.5, 4.7, 2.6, 1.3, 1.3, { sh: 0.6 });       // serbatoio del carburante, vicino al molo
+    addObj(I.bar, 8.4, 3.3, 2.6, 1.3, 1.3, { sh: 0.8 });        // baracca del rifornimento, accanto al serbatoio
+  }
+  sortObjs();
+  Object.assign(player, { i: START.p.i, j: START.p.j }); Object.assign(raft, { i: START.r.i, j: START.r.j, phi: 0 });
+}
+// ordine di disegno fisso: A prima di B se A sta tutto «dietro» B (verso NE o NO)
+function sortObjs() {
+  const n = OBJS.length, before = (a, b) => a.rect.i1 <= b.rect.i0 + 1e-6 || a.rect.j1 <= b.rect.j0 + 1e-6;
+  const indeg = new Array(n).fill(0), adj = OBJS.map(() => []);
+  for (let a = 0; a < n; a++) for (let b = 0; b < n; b++) if (a !== b && before(OBJS[a], OBJS[b]) && !before(OBJS[b], OBJS[a])) { adj[a].push(b); indeg[b]++; }
+  const out = [], done = new Array(n).fill(false);
+  for (let k = 0; k < n; k++) {
+    let pick = -1;
+    for (let a = 0; a < n; a++) if (!done[a] && indeg[a] === 0 && (pick < 0 || OBJS[a].ci + OBJS[a].cj < OBJS[pick].ci + OBJS[pick].cj)) pick = a;
+    if (pick < 0) for (let a = 0; a < n; a++) if (!done[a] && (pick < 0 || OBJS[a].ci + OBJS[a].cj < OBJS[pick].ci + OBJS[pick].cj)) pick = a;   // ciclo: ripiego sul centro
+    done[pick] = true; out.push(OBJS[pick]); for (const b of adj[pick]) indeg[b]--;
+  }
+  OBJS.length = 0; for (const o of out) OBJS.push(o);
+}
+
+// ---- stato -----------------------------------------------------------------------
+const cv = document.getElementById('game'), ctx = cv.getContext('2d');
+const seaCv = document.getElementById('sea'), sctx = seaCv.getContext('2d', { alpha: false }), WVE = [0, 1, 2, 3].map(n => document.getElementById('wv' + n));
+const dbgEl = document.getElementById('dbg'), verEl = document.getElementById('ver'), hintEl = document.getElementById('hint');
+const loadEl = document.getElementById('load'), actEl = document.getElementById('act');
+let W = 0, H = 0, dpr = 1, portrait = false, ready = false;
+const FACE_DIR = { ne: [0, -1], se: [1, 0], so: [0, 1], no: [-1, 0] };
+const player = { i: 5, j: 7, face: 'se', moving: false, vi: 0, vj: 0, ph: 0 };   // ph = fase del passo (0..6), avanza con la distanza percorsa
+const raft = { i: 6.5, j: 8.65, phi: 0, vi: 0, vj: 0, speed: 0 };      // phi: direzione di prua in terra (rad): 0=SE(+i), 90°=SO(+j), 180°=NO(-i), 270°=NE(-j)
+let mode = 'walk';                           // 'walk' | 'sail'
+const cam = { x: 0, y: 0 };
+const stick = { id: null, ox: 0, oy: 0, x: 0, y: 0, active: false };
+const keys = { l: 0, r: 0, u: 0, d: 0 };
+const stats = { t: 0, msAll: 0, msSea: 0 };
+const BUILD = '__BUILD__';                  // lo sostituisce la pubblicazione su GitHub Pages; in anteprima resta com'è
+let dbgMode = 0;
+const ft = [];
+
 function resize() {
-  dpr = Math.min(4, window.devicePixelRatio || 1);
+  dpr = Math.min(GFX[gfxLevel()].cap, window.devicePixelRatio || 1);
   W = window.innerWidth; H = window.innerHeight;
-  cv.width = sv.width = Math.round(W * dpr); cv.height = sv.height = Math.round(H * dpr);
+  cv.width = seaCv.width = Math.round(W * dpr); cv.height = seaCv.height = Math.round(H * dpr);
   portrait = H > W;
   document.getElementById('rot').style.display = portrait ? 'flex' : 'none';
   if (portrait) { stick.id = null; stick.active = false; }
+  wvSig = '';
 }
-window.addEventListener('resize', resize);
-resize();
 
-// ---- chunk -------------------------------------------------------------------
-function chunkKey(cx, cy) { return cx + ',' + cy; }
-function ensureChunks(cx, cy) {
-  const R = CFG.ACTIVE_R, keep = new Set();
-  for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
-    const k = chunkKey(cx + dx, cy + dy); keep.add(k);
-    if (!chunks.has(k)) {
-      const t0 = performance.now();
-      chunks.set(k, makeChunk(cx + dx, cy + dy, CFG.SEED));
-      stats.genMs = performance.now() - t0;
-      stats.genMax = Math.max(stats.genMax, stats.genMs);
-    }
-  }
-  for (const k of Array.from(chunks.keys())) if (!keep.has(k)) chunks.delete(k);
-  stats.loaded = chunks.size;
-}
-function raftChunk() { return [Math.floor(raft.x / CHK), Math.floor(raft.y / CHK)]; }
-
-// ---- comandi -------------------------------------------------------------------
+// ---- comandi ---------------------------------------------------------------------
 cv.addEventListener('pointerdown', e => {
   if (stick.id !== null || portrait || e.clientX > W * CFG.JOY_ZONE) return;
   stick.id = e.pointerId; stick.ox = stick.x = e.clientX; stick.oy = stick.y = e.clientY; stick.active = true;
   try { cv.setPointerCapture(e.pointerId); } catch (_) {}
-  hintEl.style.opacity = 0;
-  e.preventDefault();
+  hintEl.style.opacity = 0; e.preventDefault();
 });
 cv.addEventListener('pointermove', e => { if (e.pointerId === stick.id) { stick.x = e.clientX; stick.y = e.clientY; e.preventDefault(); } });
 const stickEnd = e => { if (e.pointerId === stick.id) { stick.id = null; stick.active = false; } };
-cv.addEventListener('pointerup', stickEnd);
-cv.addEventListener('pointercancel', stickEnd);
+cv.addEventListener('pointerup', stickEnd); cv.addEventListener('pointercancel', stickEnd);
+// zoom: bottoni + / − (e tasti + −); la scelta resta salvata sul telefono. CFG.ART = px CSS per px PNG.
+function setArt(v) { CFG.ART = v; try { localStorage.setItem('derivaIsoArt2', String(v)); } catch (_) {} }
+function zoomStep(d) {
+  const st = CFG.ZOOM_STEPS; let k = 0, best = 1e9;
+  st.forEach((v, n) => { const e = Math.abs(v - CFG.ART); if (e < best) { best = e; k = n; } });
+  setArt(st[Math.max(0, Math.min(st.length - 1, k + d))]);
+}
+try { const v = parseFloat(localStorage.getItem('derivaIsoArt2')); if (CFG.ZOOM_STEPS.includes(v)) CFG.ART = v; } catch (_) {}
+{ const qa = +new URLSearchParams(location.search).get('art'); if (qa > 0.1 && qa < 1.5) CFG.ART = qa; }
+document.getElementById('zin').addEventListener('click', () => zoomStep(1));
+document.getElementById('zout').addEventListener('click', () => zoomStep(-1));
+window.addEventListener('keydown', e => { if (e.key === '+' || e.key === '=') zoomStep(1); else if (e.key === '-' || e.key === '_') zoomStep(-1); });
 cv.addEventListener('contextmenu', e => e.preventDefault());
-const KEYMAP = { ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', ArrowUp: 'up', w: 'up', ArrowDown: 'down', s: 'down' };
-window.addEventListener('keydown', e => { const k = KEYMAP[e.key]; if (k) { keys[k] = 1; hintEl.style.opacity = 0; e.preventDefault(); } });
+const KEYMAP = { ArrowLeft: 'l', a: 'l', ArrowRight: 'r', d: 'r', ArrowUp: 'u', w: 'u', ArrowDown: 'd', s: 'd' };
+window.addEventListener('keydown', e => { const k = KEYMAP[e.key]; if (k) { keys[k] = 1; hintEl.style.opacity = 0; e.preventDefault(); } else if ((e.key === 'e' || e.key === ' ') && actEl.style.display !== 'none') { doAction(); e.preventDefault(); } });
 window.addEventListener('keyup', e => { const k = KEYMAP[e.key]; if (k) keys[k] = 0; });
-// ---- bottoni «prova mare» (si vedono finché il pannello debug è acceso; la scelta resta salvata) ----
-const provaEl = document.getElementById('prova');
-const PROVA = {
-  onde: { key: 'MARE_ONDE', vals: [3, 2, 1, 0], txt: { 3: 'Muse + Claude', 2: 'Muse', 1: 'Claude', 0: 'spente' }, label: 'Onde' },
-  blu: { key: 'MARE_BLU', vals: [2, 1, 0], txt: { 2: 'Muse', 1: 'Claude', 0: 'spento' }, label: 'Blu' },
-  var: { key: 'MARE_VAR', vals: [1, 0], txt: { 1: 'sì', 0: 'no' }, label: 'Varianti b' }
-};
-try { const sv = JSON.parse(localStorage.getItem('deriva_prova2') || '{}'); for (const k in PROVA) if (PROVA[k].vals.indexOf(sv[k]) >= 0) CFG[PROVA[k].key] = sv[k]; } catch (e) {}
-function provaLabels() { provaEl.querySelectorAll('button').forEach(b => { const p = PROVA[b.dataset.k]; b.textContent = p.label + ': ' + p.txt[CFG[p.key]]; }); }
-provaEl.querySelectorAll('button').forEach(b => b.addEventListener('pointerdown', e => {
-  const p = PROVA[b.dataset.k], i = p.vals.indexOf(CFG[p.key]);
-  CFG[p.key] = p.vals[(i + 1) % p.vals.length]; provaLabels();
-  try { const o = {}; for (const k in PROVA) o[k] = CFG[PROVA[k].key]; localStorage.setItem('deriva_prova2', JSON.stringify(o)); } catch (er) {}
-  e.stopPropagation(); e.preventDefault();
-}));
-provaLabels();
-verEl.addEventListener('pointerdown', e => { dbgMode = (dbgMode + 1) % 3; e.stopPropagation(); e.preventDefault(); });
+verEl.addEventListener('pointerdown', e => { settings.test.fps = T('fps') === '1' ? '0' : '1'; saveSettings(); applyTest(); e.stopPropagation(); e.preventDefault(); });
+actEl.addEventListener('pointerdown', e => { doAction(); e.stopPropagation(); e.preventDefault(); });
 
-// ---- aggiornamento ---------------------------------------------------------------
-function angDiff(a, b) { let d = a - b; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return d; }
-function update(dt) {
-  stats.t += dt;
-  let mag = 0, ang = raft.h;
+function inputVec() {                        // direzione sullo schermo (ux,uy) e intensità 0..1
+  let ux = 0, uy = 0, mag = 0;
   if (stick.active) {
-    const dx = stick.x - stick.ox, dy = stick.y - stick.oy, dist = Math.hypot(dx, dy);
-    mag = Math.min(1, dist / CFG.STICK_R);
-    if (mag < CFG.STICK_DEAD) mag = 0; else { mag = (mag - CFG.STICK_DEAD) / (1 - CFG.STICK_DEAD); ang = Math.atan2(dy, dx); }
+    const dx = stick.x - stick.ox, dy = stick.y - stick.oy, d = Math.hypot(dx, dy);
+    mag = Math.min(1, d / CFG.STICK_R);
+    if (mag < CFG.STICK_DEAD) mag = 0; else { ux = dx / d; uy = dy / d; mag = (mag - CFG.STICK_DEAD) / (1 - CFG.STICK_DEAD); }
+  }
+  const kx = keys.r - keys.l, ky = keys.d - keys.u;
+  if (!mag && (kx || ky)) { const d = Math.hypot(kx, ky); ux = kx / d; uy = ky / d; mag = 1; }
+  return [ux, uy, mag];
+}
+function screenToGround(vx, vy) { return [(vx / 64 + vy / 32) / 2, (vy / 32 - vx / 64) / 2]; }   // da px CSS a tessere
+function pickFace(vi, vj, cur) {
+  const ai = Math.abs(vi), aj = Math.abs(vj), curI = cur === 'se' || cur === 'no';
+  const axisI = curI ? !(aj > ai * 1.25) : (ai > aj * 1.25);
+  return axisI ? (vi > 0 ? 'se' : 'no') : (vj > 0 ? 'so' : 'ne');
+}
+
+// ---- collisioni ----------------------------------------------------------------------
+function playerBlocked(i, j) {
+  const r = CFG.PR;
+  if (!walkableAt(i - r, j - r) || !walkableAt(i + r, j - r) || !walkableAt(i - r, j + r) || !walkableAt(i + r, j + r)) return true;
+  for (const o of OBJS) if (o.solid && i + r > o.rect.i0 && i - r < o.rect.i1 && j + r > o.rect.j0 && j - r < o.rect.j1) return true;
+  return false;
+}
+const SLAB = { i0: -0.5, i1: GI + 0.5, j0: -0.5, j1: GJ + 0.5 };      // ingombro della piattaforma per la zattera
+function raftHalf(phi) { const c = Math.abs(Math.cos(phi)), n = Math.abs(Math.sin(phi)); return [1.5 * c + n, 1.5 * n + c]; }   // semi-estensioni del rettangolo 3x2 ruotato (ingombro a scatola)
+function raftBlocked(i, j, phi) {
+  const [hi, hj] = raftHalf(phi);
+  return i + hi > SLAB.i0 && i - hi < SLAB.i1 && j + hj > SLAB.j0 && j - hj < SLAB.j1;
+}
+
+// ---- aggiornamento --------------------------------------------------------------------
+const TAU = Math.PI * 2, wrapAng = a => ((a % TAU) + TAU) % TAU, angDiff = (t, f) => { let d = (t - f) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
+function pushRaftOut() {                     // se girando la zattera entra nella piattaforma, la spingo fuori dal lato più vicino
+  const [hi, hj] = raftHalf(raft.phi), dl = raft.i + hi - SLAB.i0, dr = SLAB.i1 - (raft.i - hi), du = raft.j + hj - SLAB.j0, dd = SLAB.j1 - (raft.j - hj);
+  if (dl > 0 && dr > 0 && du > 0 && dd > 0) { const m = Math.min(dl, dr, du, dd); if (m === dl) raft.i -= dl; else if (m === dr) raft.i += dr; else if (m === du) raft.j -= du; else raft.j += dd; }
+}
+function update(dt) {
+  stats.t += dt; playSec += dt;
+  const [ux, uy, mag] = inputVec();
+  if (mode === 'walk') {
+    const [tvi, tvj] = screenToGround(ux * mag * CFG.WALK_SPEED, uy * mag * CFG.WALK_SPEED);
+    player.vi += (tvi - player.vi) * Math.min(1, dt * 14); player.vj += (tvj - player.vj) * Math.min(1, dt * 14);
+    if (!mag && Math.hypot(player.vi, player.vj) < 0.05) { player.vi = player.vj = 0; }
+    player.moving = Math.hypot(player.vi, player.vj) > 0.15;
+    if (player.moving) player.ph = (player.ph + Math.hypot((player.vi - player.vj) * 128, (player.vi + player.vj) * 64) * dt / CFG.WALK_CYCLE * WALK_N) % WALK_N;   // i piedi seguono lo spostamento reale sullo schermo
+    else player.ph = 0;
+    if (mag > 0.2) player.face = pickFace(tvi, tvj, player.face);
+    let ni = player.i + player.vi * dt;
+    if (!playerBlocked(ni, player.j)) player.i = ni; else player.vi = 0;
+    let nj = player.j + player.vj * dt;
+    if (!playerBlocked(player.i, nj)) player.j = nj; else player.vj = 0;
   } else {
-    const kx = keys.right - keys.left, ky = keys.down - keys.up;
-    if (kx || ky) { mag = 1; ang = Math.atan2(ky, kx); }
+    // la zattera gira (con calma) verso dove spingi il joystick e avanza lungo la prua: niente scatti fra le viste
+    let want = 0;
+    if (mag > 0.2) {
+      const g = screenToGround(ux, uy), target = Math.atan2(g[1], g[0]);
+      const d = angDiff(target, raft.phi), step = CFG.RAFT_TURN * dt;
+      raft.phi = wrapAng(raft.phi + Math.max(-step, Math.min(step, d)));
+      want = mag * CFG.SAIL_SPEED * (0.2 + 0.8 * Math.max(0, Math.cos(angDiff(target, raft.phi))));
+    }
+    raft.speed += (want - raft.speed) * Math.min(1, dt * CFG.SAIL_ACCEL);
+    if (!want && raft.speed < 1) raft.speed = 0;
+    pushRaftOut();
+    const ci = Math.cos(raft.phi), cj = Math.sin(raft.phi), perUnit = Math.hypot((ci - cj) * 64, (ci + cj) * 32);   // px CSS sullo schermo per tessera lungo la prua
+    raft.vi = ci * raft.speed / perUnit; raft.vj = cj * raft.speed / perUnit;
+    let ni = raft.i + raft.vi * dt;
+    if (!raftBlocked(ni, raft.j, raft.phi)) raft.i = ni; else { raft.vi = 0; raft.speed *= 0.6; }
+    let nj = raft.j + raft.vj * dt;
+    if (!raftBlocked(raft.i, nj, raft.phi)) raft.j = nj; else { raft.vj = 0; raft.speed *= 0.6; }
   }
-  ctrl.mag = mag; ctrl.ang = ang;
-
-  const maxV = CFG.RAFT_SPEED * CFG.TILE;
-  let align = 1;
-  if (mag > 0) {
-    const diff = angDiff(ang, raft.h), maxTurn = CFG.RAFT_TURN * dt;
-    raft.h += Math.max(-maxTurn, Math.min(maxTurn, diff));
-    align = 0.4 + 0.6 * Math.max(0, Math.cos(Math.min(Math.abs(diff), Math.PI / 2)));
+  // camera: segue chi si controlla (px PNG)
+  let tx, ty;
+  if (mode === 'walk') { const p = PX(player.i, player.j); tx = p[0]; ty = p[1] - 60; }
+  else { const p = PX(raft.i, raft.j); tx = p[0]; ty = p[1] + CFG.WO - 40; }
+  const k = Math.min(1, dt * CFG.CAM_EASE);
+  cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k;
+  updateAction();
+}
+// pulsante «Sali / Scendi»
+function distPointRect(i, j, r) { const di = Math.max(r.i0 - i, 0, i - r.i1), dj = Math.max(r.j0 - j, 0, j - r.j1); return Math.hypot(di, dj); }
+function raftRect() { const [hi, hj] = raftHalf(raft.phi); return { i0: raft.i - hi, i1: raft.i + hi, j0: raft.j - hj, j1: raft.j + hj }; }
+let actKind = '';
+function nearestLanding() {                  // casella camminabile libera più vicina alla zattera
+  let best = null, bd = 1e9; const rr = raftRect();
+  for (const [k, t] of GRID) {
+    if (t === 'h') continue; const [i, j] = k.split(',').map(Number);
+    if (playerBlocked(i, j)) continue;
+    const d = distPointRect(i, j, rr); if (d < bd) { bd = d; best = [i, j]; }
   }
-  const target = mag * maxV * align;
-  if (target > raft.speed) raft.speed = Math.min(target, raft.speed + CFG.RAFT_ACCEL * CFG.TILE * dt);
-  else raft.speed = Math.max(target, raft.speed - CFG.RAFT_BRAKE * CFG.TILE * dt);
-
-  const step = raft.speed * dt;
-  raft.x += Math.cos(raft.h) * step; raft.y += Math.sin(raft.h) * step;
-  stats.dist += step;
-
-  const lk = CFG.LOOKAHEAD * raft.speed, kl = 1 - Math.exp(-3 * dt);
-  lead.x += (Math.cos(raft.h) * lk - lead.x) * kl; lead.y += (Math.sin(raft.h) * lk - lead.y) * kl;
-  cam.x = raft.x + lead.x; cam.y = raft.y + lead.y;
-
-  const rc = raftChunk(); ensureChunks(rc[0], rc[1]);
-
-  trailTimer += dt;
-  if (trailTimer >= 0.05) {
-    trailTimer = 0;
-    if (raft.speed > 0.4 * CFG.TILE) trail.push({ x: raft.x - Math.cos(raft.h) * 92, y: raft.y - Math.sin(raft.h) * 92, h: raft.h, t: stats.t, s: raft.speed / maxV });
-    while (trail.length && stats.t - trail[0].t > 2) trail.shift();
-  }
+  return best && bd < 1.6 ? best : null;
+}
+function updateAction() {
+  let kind = '';
+  if (mode === 'walk') { if (distPointRect(player.i, player.j, raftRect()) < 1.5) kind = 'Sali'; }
+  else if (raft.speed < 12 && nearestLanding()) kind = 'Scendi';
+  if (kind !== actKind) { actKind = kind; actEl.style.display = kind ? 'block' : 'none'; actEl.textContent = kind; }
+}
+function doAction() {
+  if (actKind === 'Sali') { mode = 'sail'; raft.vi = raft.vj = 0; player.vi = player.vj = 0; }
+  else if (actKind === 'Scendi') { const l = nearestLanding(); if (l) { player.i = l[0]; player.j = l[1]; player.vi = player.vj = 0; player.face = 'ne'; mode = 'walk'; raft.vi = raft.vj = 0; raft.speed = 0; } }
+  updateAction();
 }
 
-// ---- disegno -----------------------------------------------------------------------
-function roundRectPath(g, x, y, w, h, r) {
-  g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
-  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
-}
-
+// ---- base statica: pavimenti, facce, pali, ringhiere, ombre — a 1:1 px PNG, in un canvas solo --------------------------
+const BASE = { x0: -1160, y0: -180, w: 2580, h: 1500, c: null };
 function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
-
-// ---- mare a cache -----------------------------------------------------------------
-// Il mare dipende solo dal mondo, non cambia mai: si compone UNA volta in blocchi da SB×SB px del dispositivo
-// (tessere di Muse + sfumature di profondità + blu) e ogni fotogramma si copiano solo i blocchi visibili.
-// Prima ogni fotogramma rifaceva 4 strati a schermo intero con maschere: troppo per il telefono.
-// L'aspetto è lo stesso: stessi pixel, stesse maschere agganciate al mondo, stesso arrotondamento delle tessere.
-const SB = 512;
-const MS = 16;                              // px CSS per campione della maschera di profondità (il campo è liscio: bastano 16)
-const seaBlocks = new Map();                // "bx,by" -> { c, g, ver }
-let seaVer = 1, seaSig = '';
-let seaTmp = null;                          // strati di lavoro, riusati da ogni blocco
-function seaWork() {
-  if (seaTmp) return seaTmp;
-  const gw = Math.ceil(SB / dpr / MS) + 4, mk = () => mkCanvas(gw, gw);
-  const L = ['B', 'F', 'UM', 'UF'].map(n => {
-    const lay = mkCanvas(SB, SB), m = mk();
-    return { n, lay, g: lay.getContext('2d'), m, mg: m.getContext('2d'), img: m.getContext('2d').createImageData(gw, gw), need: false };
-  });
-  seaTmp = { gw, L, dpr };
-  return seaTmp;
+function buildBase() {
+  const c = mkCanvas(BASE.w, BASE.h), g = c.getContext('2d'); BASE.c = c;
+  g.imageSmoothingEnabled = false;
+  const put = (im, x, y) => g.drawImage(im, Math.round(x - BASE.x0), Math.round(y - BASE.y0));
+  const tilePos = (i, j) => { const p = PX(i, j); return [p[0] - 128, p[1] - 128]; };
+  const poly = (pts, fill, blur) => {
+    g.save(); if (blur) g.filter = 'blur(' + blur + 'px)'; g.fillStyle = fill; g.beginPath();
+    pts.forEach((p, n) => n ? g.lineTo(p[0] - BASE.x0, p[1] - BASE.y0) : g.moveTo(p[0] - BASE.x0, p[1] - BASE.y0)); g.closePath(); g.fill(); g.restore();
+  };
+  // 1) ombra della piattaforma sul mare (a livello del mare: contorno del ponte, 64 px più in basso)
+  const corner = (i, j) => { const p = PX(i, j); return [p[0], p[1] + CFG.WO]; };
+  const sh = (a, dx, dy) => [a[0] + dx, a[1] + dy];
+  const outline = [corner(-0.5, -0.5), corner(GI + 0.5, -0.5), corner(GI + 0.5, GJ + 0.5), corner(-0.5, GJ + 0.5)];
+  poly(outline.map(p => sh(p, 46, 54)), 'rgba(10,28,36,.42)', 30);
+  poly(outline.map(p => sh(p, 8, 14)), 'rgba(10,28,36,.30)', 12);
+  // 2) pali sotto il pontile (stanno dietro le facce), col disegno di Muse (palo_iso.png). Il file ha una striscia trasparente
+  //    (da rifare, vedi CHANGELOG): qui gli metto dietro un sottofondo del colore medio così non si vede il mare attraverso.
+  //    Uno per spigolo lungo il lato SO; i due ai capi rientrano di 0,32 tessere così la loro cima resta nascosta sotto il pontile.
+  {
+    const pc = mkCanvas(1, 1), pq = pc.getContext('2d'); pq.drawImage(I.palo, 20, 10, 56, 190, 0, 0, 1, 1); const d = pq.getImageData(0, 0, 1, 1).data;
+    const back = 'rgb(' + d[0] + ',' + d[1] + ',' + d[2] + ')';
+    const us = [-0.5 + 0.32]; for (let i = 1; i <= GI; i++) us.push(i - 0.5); us.push(GI + 0.5 - 0.32);
+    for (const u of us) {
+      const e = PX(u, GJ + 0.5), x = Math.round(e[0] - BASE.x0), top = Math.round(e[1] - 61 - BASE.y0);
+      g.fillStyle = 'rgba(28,58,70,.42)'; g.beginPath(); g.ellipse(x, top + 207 + 2, 40, 12, 0, 0, 7); g.fill();
+      g.fillStyle = back; g.fillRect(x - 28, top + 12, 56, 195);
+      g.drawImage(I.palo, x - 48, top);
+    }
+  }
+  // 2b) sottofondo dei pavimenti: i bordi dei rombi sono antialias (semitrasparenti) e fra due rombi lasciano un filo di mare/ombra.
+  //     Sotto ogni casella (ingrandita di 2 px) metto il suo colore medio, ritagliato sul contorno della piattaforma e senza il buco.
+  const mean = im => { const c = mkCanvas(32, 32), q = c.getContext('2d'); q.drawImage(im, 0, 0, 32, 32); const d = q.getImageData(0, 0, 32, 32).data; let r = 0, gg = 0, b = 0, n = 0; for (let k = 0; k < d.length; k += 4) if (d[k + 3] > 250) { r += d[k]; gg += d[k + 1]; b += d[k + 2]; n++; } return 'rgb(' + Math.round(r / n) + ',' + Math.round(gg / n) + ',' + Math.round(b / n) + ')'; };
+  const mc = { pa: mean(I.pa), pb: mean(I.pb), pc: mean(I.pc), wa: mean(I.wa), wb: mean(I.wb) };
+  g.save();
+  g.beginPath();
+  [[-0.5, -0.5], [GI + 0.5, -0.5], [GI + 0.5, GJ + 0.5], [-0.5, GJ + 0.5]].forEach((q, n) => { const p = PX(q[0], q[1]); n ? g.lineTo(p[0] - BASE.x0, p[1] - BASE.y0) : g.moveTo(p[0] - BASE.x0, p[1] - BASE.y0); });
+  g.closePath(); g.clip();
+  for (const [k, t] of GRID) {
+    if (t === 'h') continue; const [i, j] = k.split(',').map(Number), p = PX(i, j), x = p[0] - BASE.x0, y = p[1] - BASE.y0, e = 2;
+    g.fillStyle = mc[t]; g.beginPath(); g.moveTo(x, y - 64 - e); g.lineTo(x + 128 + 2 * e, y); g.lineTo(x, y + 64 + e); g.lineTo(x - 128 - 2 * e, y); g.closePath(); g.fill();
+  }
+  g.restore();
+  // 3) pavimenti, nell'ordine «dal fondo» (i+j crescente)
+  for (let s = 0; s <= GI + GJ; s++) for (let i = 0; i <= GI; i++) {
+    const j = s - i; if (j < 0 || j > GJ) continue;
+    const t = GRID.get(i + ',' + j), p = tilePos(i, j);
+    put(t === 'h' ? I.buco : t === 'wa' ? I.wa : t === 'wb' ? I.wb : t === 'pa' ? I.pa : t === 'pb' ? I.pb : I.pc, p[0], p[1]);
+  }
+  // 4) ombre a terra degli oggetti (luce da in alto a sinistra: ombra verso SE)
+  for (const o of OBJS) {
+    const r = o.rect, e = o.sh;
+    poly([PX(r.i0, r.j0), PX(r.i1 + e, r.j0), PX(r.i1 + e, r.j1), PX(r.i0, r.j1)], 'rgba(14,24,26,.34)', o.solid ? 7 : 2);
+  }
+  // 5) facce SE e SO
+  for (let j = 0; j <= GJ; j++) { const p = tilePos(GI, j); put(j > GJ_STEEL ? I.fwse : I.fse, p[0], p[1]); }
+  for (let i = 0; i <= GI; i++) { const p = tilePos(i, GJ); put(I.fwso, p[0], p[1]); }
+  // 6) ringhiere sui lati nord (solo sul ponte d'acciaio)
+  for (let i = 1; i <= GI; i++) { const p = tilePos(i, 0); put(I.bne, p[0], p[1]); }
+  for (let j = 1; j <= GJ_STEEL; j++) { const p = tilePos(0, j); put(I.bno, p[0], p[1]); }
+  { const p = tilePos(0, 0); put(I.ban, p[0], p[1]); }
 }
-function renderSeaBlock(blk, bx, by) {
-  const T = CFG.TILE, useBlu = CFG.MARE_BLU === 2, useVar = CFG.MARE_VAR === 1;
-  const ox = bx * SB, oy = by * SB, g0 = blk.g;
-  if (seaTmp && seaTmp.dpr !== dpr) seaTmp = null;
-  const wk = seaWork(), gw = wk.gw, [LB, LF, LUM, LUF] = wk.L;
-  const gx0 = Math.floor(ox / dpr / MS) - 1, gy0 = Math.floor(oy / dpr / MS) - 1;
+
+// ---- mare: lo stesso del gioco v0.1b.8 ---------------------------------------------------
+// Profondità basso/medio/fondo (rumore fisso dalla seed), tessere blu di Muse, 2 strati d'onda di Muse e 2 di luce di Claude,
+// chiazze d'olio. Il mare è una trama piatta: si compone UNA volta in blocchi da SB×SB px del dispositivo e ogni fotogramma si
+// copiano solo i blocchi visibili. Una «tessera di mare» è la tessera di Muse da 256 px = 256 px PNG; l'unità di mare (u) = 4 px PNG
+// (nel gioco di prima 1 u = 1 px CSS, tessera = 64 u): il codice è quello di allora con «dpr» = px dispositivo per u = 4·S.
+function hash2(x, y, s) {
+  let h = (Math.imul(x | 0, 0x27d4eb2d) + Math.imul(y | 0, 0x165667b1) + Math.imul(s | 0, 0x9e3779b1)) | 0;
+  h = Math.imul(h ^ (h >>> 15), 0x85ebca6b); h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35); h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+function vnoise(x, y, s) {
+  const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+  const a = hash2(xi, yi, s), b = hash2(xi + 1, yi, s), c = hash2(xi, yi + 1, s), d = hash2(xi + 1, yi + 1, s);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y, s) {
+  let sum = 0, amp = 0.5, f = 1, norm = 0;
+  for (let o = 0; o < 3; o++) { sum += amp * vnoise(x * f + o * 17.3, y * f - o * 9.1, s + o * 7919); norm += amp; amp *= 0.5; f *= 2.03; }
+  return sum / norm;
+}
+const DEPTH_T = [0.36, 0.46, 0.55, 0.66];
+function levelFromNoise(d) {                  // 0 = basso, 1 = medio, 2 = fondo (continuo)
+  const t = DEPTH_T;
+  if (d <= t[0]) return 0; if (d < t[1]) return (d - t[0]) / (t[1] - t[0]);
+  if (d <= t[2]) return 1; if (d < t[3]) return 1 + (d - t[2]) / (t[3] - t[2]);
+  return 2;
+}
+const depthL = (tx, ty) => levelFromNoise(fbm(tx / CFG.DEPTH_SCALE, ty / CFG.DEPTH_SCALE, CFG.SEED));
+function blueAt(tx, ty, depth) {
+  const n = fbm(tx / CFG.BLUE_SCALE, ty / CFG.BLUE_SCALE, CFG.SEED + 4242) + (depth - 1) * CFG.BLUE_DEPTH;
+  const u = Math.max(0, Math.min(1, (n - CFG.BLUE_LO) / (CFG.BLUE_HI - CFG.BLUE_LO)));
+  return u * u * (3 - 2 * u);
+}
+const TS = 64, SB = 512, MS = 16;             // tessera di mare in u; blocco in px dispositivo; u per campione di maschera
+const SOX = 1920, SOY = 1536;                 // piano PNG → mondo del mare (px PNG): il centro della piattaforma cade dove partiva la zattera del gioco di prima (tessera 8,8, mare fondo)
+const seaBlocks = new Map();
+let seaVer = 1, seaSig = '', seaTmp = null, seaForce = false;
+function seaWork(sd) {
+  if (seaTmp && seaTmp.sd === sd) return seaTmp;
+  const gw = Math.ceil(SB / sd / MS) + 4, mk = () => mkCanvas(gw, gw);
+  const L = ['B', 'F', 'UM', 'UF'].map(n => { const lay = mkCanvas(SB, SB), m = mk(); return { n, lay, g: lay.getContext('2d'), m, mg: m.getContext('2d'), img: m.getContext('2d').createImageData(gw, gw), need: false }; });
+  return (seaTmp = { gw, L, sd });
+}
+function renderSeaBlock(blk, bx, by, sd) {
+  const ox = bx * SB, oy = by * SB, g0 = blk.g, wk = seaWork(sd), gw = wk.gw, [LB, LF, LUM, LUF] = wk.L;
+  const gx0 = Math.floor(ox / sd / MS) - 1, gy0 = Math.floor(oy / sd / MS) - 1;
   for (const l of wk.L) l.need = false;
-  for (let gy = 0; gy < gw; gy++) for (let gx = 0; gx < gw; gx++) {      // maschere (un campione ogni MS px CSS, agganciato al mondo)
-    const tx = (gx0 + gx) * MS / T, ty = (gy0 + gy) * MS / T, k = (gy * gw + gx) * 4;
-    const L = depthL(tx, ty, CFG.SEED);
+  for (let gy = 0; gy < gw; gy++) for (let gx = 0; gx < gw; gx++) {      // maschere: un campione ogni MS u, agganciato al mondo
+    const tx = (gx0 + gx) * MS / TS, ty = (gy0 + gy) * MS / TS, k = (gy * gw + gx) * 4, L = depthL(tx, ty);
     const aB = L < 1 ? (1 - L) * 255 : 0, aF = L > 1 ? (L - 1) * 255 : 0;
     LB.img.data[k + 3] = aB; LF.img.data[k + 3] = aF;
     if (aB > 0) LB.need = true; if (aF > 0) LF.need = true;
-    if (useBlu) {                           // blu di Muse: quantità dal rumore fisso, ripartita tra medio-blu e fondo-blu secondo la profondità
-      const bl = blueAt(tx, ty, L, CFG.SEED) * 255, wM = L <= 1 ? 1 : Math.max(0, 2 - L), wF = L > 1 ? Math.min(1, L - 1) : 0;
-      LUM.img.data[k + 3] = bl * wM; LUF.img.data[k + 3] = bl * wF;
-      if (bl * wM > 0) LUM.need = true; if (bl * wF > 0) LUF.need = true;
-    }
+    const bl = blueAt(tx, ty, L) * 255, wM = L <= 1 ? 1 : Math.max(0, 2 - L), wF = L > 1 ? Math.min(1, L - 1) : 0;
+    LUM.img.data[k + 3] = bl * wM; LUF.img.data[k + 3] = bl * wF;
+    if (bl * wM > 0) LUM.need = true; if (bl * wF > 0) LUF.need = true;
   }
   for (const l of wk.L) if (l.need) { l.g.setTransform(1, 0, 0, 1, 0, 0); l.g.globalCompositeOperation = 'source-over'; l.g.clearRect(0, 0, SB, SB); l.g.imageSmoothingEnabled = true; l.g.imageSmoothingQuality = 'high'; }
   g0.setTransform(1, 0, 0, 1, 0, 0); g0.imageSmoothingEnabled = true; g0.imageSmoothingQuality = 'high';
-
-  const td = T * dpr, gi0 = Math.floor(ox / td) - 1, gi1 = Math.floor((ox + SB) / td) + 1, gj0 = Math.floor(oy / td) - 1, gj1 = Math.floor((oy + SB) / td) + 1;
+  const td = TS * sd, gi0 = Math.floor(ox / td) - 1, gi1 = Math.floor((ox + SB) / td) + 1, gj0 = Math.floor(oy / td) - 1, gj1 = Math.floor((oy + SB) / td) + 1;
   for (let gj = gj0; gj <= gj1; gj++) for (let gi = gi0; gi <= gi1; gi++) {
     const x0 = Math.round(gi * td) - ox, y0 = Math.round(gj * td) - oy, w = Math.round((gi + 1) * td) - ox - x0, h = Math.round((gj + 1) * td) - oy - y0;
     if (x0 >= SB || y0 >= SB || x0 + w <= 0 || y0 + h <= 0) continue;
-    const Lc = depthL(gi + 0.5, gj + 0.5, CFG.SEED);
-    const vb = useVar && hash2(gi, gj, CFG.SEED + 9) < 0.5;                              // tessera a oppure b, scelta dalle coordinate
-    g0.drawImage(vb ? A.mare1b : A.mare1, x0, y0, w, h);                                  // base: acqua media
-    if (LB.need && Lc < 1.3) LB.g.drawImage(vb ? A.mare0b : A.mare0, x0, y0, w, h);       // basso, dove serve
-    if (LF.need && Lc > 0.7) LF.g.drawImage(vb ? A.mare2b : A.mare2, x0, y0, w, h);       // fondo, dove serve
-    if (LUM.need && Lc < 1.9) LUM.g.drawImage(A.mare1blu, x0, y0, w, h);                  // medio blu
-    if (LUF.need && Lc > 0.7) LUF.g.drawImage(A.mare2blu, x0, y0, w, h);                  // fondo blu
+    const Lc = depthL(gi + 0.5, gj + 0.5);
+    g0.drawImage(I.mare, x0, y0, w, h);                                  // base: acqua media
+    if (LB.need && Lc < 1.3) LB.g.drawImage(I.mare0, x0, y0, w, h);       // basso, dove serve
+    if (LF.need && Lc > 0.7) LF.g.drawImage(I.mare2, x0, y0, w, h);       // fondo, dove serve
+    if (LUM.need && Lc < 1.9) LUM.g.drawImage(I.mare1blu, x0, y0, w, h);  // medio blu
+    if (LUF.need && Lc > 0.7) LUF.g.drawImage(I.mare2blu, x0, y0, w, h);  // fondo blu
   }
-  const mx = (gx0 * MS - MS / 2) * dpr - ox, my = (gy0 * MS - MS / 2) * dpr - oy, mw = gw * MS * dpr;
+  const mx = (gx0 * MS - MS / 2) * sd - ox, my = (gy0 * MS - MS / 2) * sd - oy, mw = gw * MS * sd;
   for (const l of wk.L) {
     if (!l.need) continue;
     l.mg.putImageData(l.img, 0, 0);
@@ -388,283 +532,502 @@ function renderSeaBlock(blk, bx, by) {
     g0.drawImage(l.lay, 0, 0);
   }
 }
-function seaBlock(bx, by) {                 // blocco pronto (lo compone se manca o se è vecchio)
+function seaBlock(bx, by, sd) {
   const key = bx + ',' + by; let blk = seaBlocks.get(key);
-  if (!blk) { const c = mkCanvas(SB, SB); blk = { c: c, g: c.getContext('2d', { alpha: false }), ver: 0 }; seaBlocks.set(key, blk); }
-  if (blk.ver !== seaVer) { renderSeaBlock(blk, bx, by); blk.ver = seaVer; }
+  if (!blk) { const c = mkCanvas(SB, SB); blk = { c, g: c.getContext('2d', { alpha: false }), ver: 0 }; seaBlocks.set(key, blk); }
+  if (blk.ver !== seaVer) { renderSeaBlock(blk, bx, by, sd); blk.ver = seaVer; }
   return blk;
 }
-function drawSea(cx, cy) {
-  const t0 = performance.now();
-  const sig = dpr + '|' + CFG.MARE_BLU + '|' + CFG.MARE_VAR;
-  if (sig !== seaSig) { seaSig = sig; seaVer++; }                          // cambiata una scelta o la densità: i blocchi si rifanno pochi per volta
-  const S0x = Math.round((W / 2 - cx) * dpr), S0y = Math.round((H / 2 - cy) * dpr);   // dove cade l'origine del mondo sullo schermo (px dispositivo)
-  const bx0 = Math.floor(-S0x / SB), bx1 = Math.floor((-S0x + cv.width - 1) / SB);
-  const by0 = Math.floor(-S0y / SB), by1 = Math.floor((-S0y + cv.height - 1) / SB);
+function drawSea() {
+  const sd = S * 4, sig = sd.toFixed(4);
+  if (sig !== seaSig) { seaSig = sig; seaVer++; seaForce = true; }          // cambiato zoom o densità: ricompongo subito i blocchi che si vedono
+  const S0x = Math.round(DW / 2 - (CX + SOX) * S), S0y = Math.round(DH / 2 - (CY + SOY) * S);   // dove cade l'origine del mondo di mare (px dispositivo)
+  const bx0 = Math.floor(-S0x / SB), bx1 = Math.floor((-S0x + DW - 1) / SB), by0 = Math.floor(-S0y / SB), by1 = Math.floor((-S0y + DH - 1) / SB);
   sctx.setTransform(1, 0, 0, 1, 0, 0);
   let redo = 0;
   for (let by = by0; by <= by1; by++) for (let bx = bx0; bx <= bx1; bx++) {
     let blk = seaBlocks.get(bx + ',' + by);
-    if (!blk || blk.ver === 0) blk = seaBlock(bx, by);                     // mancante: serve subito
-    else if (blk.ver !== seaVer && redo < 3) { blk = seaBlock(bx, by); redo++; }   // vecchio: si mostra comunque, se ne rifanno 3 a fotogramma
+    if (!blk || blk.ver === 0 || (seaForce && blk.ver !== seaVer)) blk = seaBlock(bx, by, sd);                  // mancante (o zoom cambiato): serve subito
+    else if (blk.ver !== seaVer && redo < 3) { blk = seaBlock(bx, by, sd); redo++; }
     sctx.drawImage(blk.c, S0x + bx * SB, S0y + by * SB);
   }
-  // anticipo: un blocco a fotogramma subito fuori dallo schermo, di preferenza nel verso di marcia (così non si compone nulla "a vista")
-  let best = null, bd = 1e9;
-  const mxc = (bx0 + bx1) / 2 + lead.x / SB * dpr * 2, myc = (by0 + by1) / 2 + lead.y / SB * dpr * 2;
+  seaForce = false;
+  let best = null, bd = 1e9;                                                  // anticipo: un blocco a fotogramma subito fuori dallo schermo
+  const mxc = (bx0 + bx1) / 2, myc = (by0 + by1) / 2;
   for (let by = by0 - 1; by <= by1 + 1; by++) for (let bx = bx0 - 1; bx <= bx1 + 1; bx++) {
     const blk = seaBlocks.get(bx + ',' + by);
     if (blk && blk.ver === seaVer) continue;
     const d = (bx - mxc) * (bx - mxc) + (by - myc) * (by - myc);
     if (d < bd) { bd = d; best = [bx, by]; }
   }
-  if (best && redo < 3) seaBlock(best[0], best[1]);
-  for (const [k] of seaBlocks) {                                           // scarica i blocchi lontani
-    const p = k.split(','), bx = +p[0], by = +p[1];
+  if (best && redo < 3) seaBlock(best[0], best[1], sd);
+  for (const [k] of seaBlocks) {
+    const q = k.split(','), bx = +q[0], by = +q[1];
     if (bx < bx0 - 2 || bx > bx1 + 2 || by < by0 - 2 || by > by1 + 2) seaBlocks.delete(k);
+  }
+}
+
+// strati d'onda: elementi DOM (una immagine che si ripete, spostata ogni fotogramma con una traslazione: li muove la GPU).
+// Velocità in px PNG/s (mondo), periodi in tessere di mare: seguono lo zoom.
+let flowUrl = '';
+function makeFlow() {                         // luce (non colore) ricavata dalla tessera media di Muse: provvisorio di Claude, come prima
+  const N = I.mare.width, c = mkCanvas(N, N), g = c.getContext('2d');
+  g.drawImage(I.mare, 0, 0);
+  const d = g.getImageData(0, 0, N, N), p = d.data, Y = new Float32Array(N * N);
+  let sum = 0;
+  for (let i = 0, k = 0; i < Y.length; i++, k += 4) { Y[i] = 0.299 * p[k] + 0.587 * p[k + 1] + 0.114 * p[k + 2]; sum += Y[i]; }
+  const mean = sum / Y.length;
+  for (let i = 0, k = 0; i < Y.length; i++, k += 4) { const v = Math.max(0, Math.min(255, 128 + (Y[i] - mean) * 2.2)); p[k] = p[k + 1] = p[k + 2] = v; p[k + 3] = 255; }
+  g.putImageData(d, 0, 0); flowUrl = c.toDataURL('image/png');
+}
+const WVL = [
+  { claude: true, tiles: 1, vx: 36, vy: 14, a: () => lightOn() ? CFG.FLOW_A1 : 0 },
+  { claude: true, tiles: 1.7, vx: -22, vy: 28, a: () => lightOn() ? CFG.FLOW_A2 : 0 },
+  { claude: false, tiles: 4, vx: 36, vy: 14, a: () => T('onde') === '1' ? CFG.ONDE_A1 : 0 },
+  { claude: false, tiles: 5.4, vx: -24, vy: 18, a: () => T('onde') === '1' ? CFG.ONDE_A2 : 0 }
+];
+let wvSig = '';
+function setupWaves() {
+  WVL.forEach((w, n) => {
+    w.el = WVE[n]; const st = w.el.style;
+    w.on = w.a() > 0; if (!w.on) { st.display = 'none'; return; }
+    if (w.claude && !flowUrl) makeFlow();
+    w.per = 256 * w.tiles * CFG.ART;                                      // periodo in px CSS
+    st.width = Math.ceil(W + w.per) + 'px'; st.height = Math.ceil(H + w.per) + 'px';
+    st.backgroundImage = 'url(' + (w.claude ? flowUrl : I.onde.src) + ')'; st.backgroundSize = w.per + 'px ' + w.per + 'px';
+    st.mixBlendMode = w.claude ? 'overlay' : 'normal'; st.opacity = String(w.a()); st.display = 'block';
+  });
+}
+function updateSea() {
+  const t0 = performance.now();
+  const sig = W + 'x' + H + '|' + CFG.ART; if (sig !== wvSig) { wvSig = sig; setupWaves(); }
+  drawSea();
+  const snap = v => Math.round(v * dpr) / dpr, A = CFG.ART, ox = W / 2 - CX * A, oy = H / 2 - CY * A, t = stats.t * CFG.FLOW_SPEED;
+  for (const w of WVL) {
+    if (!w.on) continue;
+    const q = w.per, x = ox + w.vx * A * t, y = oy + w.vy * A * t;
+    w.el.style.transform = 'translate3d(' + (snap(((x % q) + q) % q) - q) + 'px,' + (snap(((y % q) + q) % q) - q) + 'px,0)';
   }
   stats.msSea += ((performance.now() - t0) - stats.msSea) * 0.1;
 }
 
-// ---- profondità: tocchi di blu -------------------------------------------------------
-// Un velo di blu desaturato, con opacità variabile (rumore fisso nel mondo, più frequente dove il mare è fondo).
-// Stessa tecnica delle maschere del mare: un campione ogni MS px, ingrandito liscio. Provvisorio, in codice: la
-// versione definitiva può essere una tessera «fondo blu» di Muse.
-let mkBl = null, mkBlImg = null, mkBlW = 0, mkBlH = 0;
-function drawBlue(cx, cy) {
-  if (CFG.MARE_BLU !== 1 || CFG.BLUE_A <= 0) return;
-  const T = CFG.TILE;
-  const gx0 = Math.floor((cx - W / 2) / MS) - 1, gy0 = Math.floor((cy - H / 2) / MS) - 1;
-  const gw = Math.ceil(W / MS) + 4, gh = Math.ceil(H / MS) + 4;
-  if (!mkBl || mkBlW !== gw || mkBlH !== gh) { mkBl = mkCanvas(gw, gh); mkBlImg = mkBl.getContext('2d').createImageData(gw, gh); mkBlW = gw; mkBlH = gh; }
-  const d = mkBlImg.data, c = CFG.BLUE_RGB;
-  for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
-    const tx = (gx0 + gx) * MS / T, ty = (gy0 + gy) * MS / T, k = (gy * gw + gx) * 4;
-    d[k] = c[0]; d[k + 1] = c[1]; d[k + 2] = c[2];
-    d[k + 3] = blueAt(tx, ty, depthL(tx, ty, CFG.SEED), CFG.SEED) * CFG.BLUE_A * 255;
-  }
-  mkBl.getContext('2d').putImageData(mkBlImg, 0, 0);
-  sctx.setTransform(1, 0, 0, 1, 0, 0);
-  sctx.imageSmoothingEnabled = true; sctx.imageSmoothingQuality = 'high';
-  const mx = (gx0 * MS - MS / 2 - cx + W / 2) * dpr, my = (gy0 * MS - MS / 2 - cy + H / 2) * dpr;
-  sctx.drawImage(mkBl, 0, 0, gw, gh, mx, my, gw * MS * dpr, gh * MS * dpr);
+// chiazze d'olio e di petrolio: quasi ferme, 2 fotogrammi lenti con dissolvenza, deriva minima. Posizioni dalla seed (come prima).
+const SLK = {}; const CHS = 1024;             // chunk di mare: 16 tessere = 1024 u
+function slicksOf(cx, cy) {
+  const key = cx + ',' + cy; if (SLK[key]) return SLK[key];
+  let r;
+  if (cx === 0 && cy === 0) r = [{ x: CHS / 2 + 230, y: CHS / 2 - 110, ph: 0.3, kind: 0 }, { x: CHS / 2 - 250, y: CHS / 2 + 120, ph: 2.1, kind: 1 }];   // una di ogni tipo vicino alla piattaforma
+  else if (hash2(cx, cy, CFG.SEED + 777) >= CFG.SLICK_P) r = [];
+  else r = [{ x: cx * CHS + 200 + hash2(cx, cy, CFG.SEED + 778) * (CHS - 400), y: cy * CHS + 200 + hash2(cx, cy, CFG.SEED + 779) * (CHS - 400), ph: hash2(cx, cy, CFG.SEED + 780) * 8, kind: hash2(cx, cy, CFG.SEED + 781) < CFG.SLICK_PETROLIO ? 1 : 0 }];
+  return (SLK[key] = r);
 }
-
-// ---- mare in movimento ------------------------------------------------------------
-// Due strati di sola LUCE (non di colore) fatti dalla tessera media di Muse, che scorrono in direzioni diverse
-// sopra il mare e si muovono con il mondo. Sovrapposti si «incrociano» come le onde. Provvisorio: la versione
-// definitiva sarà un disegno di Muse (onde/riflessi trasparenti da far scorrere).
-let flowCv = null, flowUrl = '';
-function makeFlow() {
-  const S = A.mare1.width, c = mkCanvas(S, S), g = c.getContext('2d');
-  g.drawImage(A.mare1, 0, 0);
-  const d = g.getImageData(0, 0, S, S), p = d.data, Y = new Float32Array(S * S);
-  let sum = 0;
-  for (let i = 0, k = 0; i < Y.length; i++, k += 4) { Y[i] = 0.299 * p[k] + 0.587 * p[k + 1] + 0.114 * p[k + 2]; sum += Y[i]; }
-  const mean = sum / Y.length;
-  for (let i = 0, k = 0; i < Y.length; i++, k += 4) {
-    const v = Math.max(0, Math.min(255, 128 + (Y[i] - mean) * 2.2));
-    p[k] = p[k + 1] = p[k + 2] = v; p[k + 3] = 255;
-  }
-  g.putImageData(d, 0, 0);
-  flowCv = c; flowUrl = c.toDataURL('image/png');
-}
-// Gli strati d'onda sono elementi DOM (non disegno nel canvas): una immagine che si ripete, spostata ogni fotogramma
-// con una semplice traslazione. Il telefono li muove con la GPU senza ridisegnarli: costo quasi nullo, a differenza
-// di 4 riempimenti a schermo intero nel canvas (~65 ms nel simulatore). Stanno tra il mare (sotto) e la zattera (sopra).
-// Provvisori di Claude: luce ricavata dalla tessera media, in modalità «overlay». Di Muse: l'overlay onde_overlay.png.
-const WV = [
-  { el: document.getElementById('wv0'), claude: true, mul: 1, vx: 9, vy: 3.5, a: () => CFG.FLOW_A1 },
-  { el: document.getElementById('wv1'), claude: true, mul: 1.7, vx: -5.5, vy: 7, a: () => CFG.FLOW_A2 },
-  { el: document.getElementById('wv2'), claude: false, mul: 1, vx: 9, vy: 3.5, a: () => CFG.ONDE_A1 },
-  { el: document.getElementById('wv3'), claude: false, mul: 1.35, vx: -6, vy: 4.5, a: () => CFG.ONDE_A2 }
-];
-let wvSig = '';
-function setupWaves() {
-  const mode = CFG.MARE_ONDE;
-  for (const w of WV) {
-    const on = w.claude ? (mode === 1 || mode === 3) : (mode === 2 || mode === 3);
-    w.on = on && w.a() > 0 && (w.claude || !!A.onde);
-    if (!w.on) { w.el.style.display = 'none'; continue; }
-    if (w.claude && !flowCv) makeFlow();
-    w.per = CFG.TILE * (w.claude ? 1 : 4) * w.mul;                             // periodo in px CSS: tessera media = 1 tessera, onde di Muse = 4 tessere
-    const st = w.el.style;
-    st.width = Math.ceil(W + w.per) + 'px'; st.height = Math.ceil(H + w.per) + 'px';
-    st.backgroundImage = 'url(' + (w.claude ? flowUrl : A.onde.src) + ')';
-    st.backgroundSize = w.per + 'px ' + w.per + 'px';
-    st.mixBlendMode = w.claude ? 'overlay' : 'normal';
-    st.opacity = String(w.a());
-    st.display = 'block';
-  }
-}
-function updateWaves(cx, cy) {
-  const t0 = performance.now();
-  const sig = CFG.MARE_ONDE + '|' + W + 'x' + H + '|' + CFG.FLOW_A1 + '|' + CFG.FLOW_A2 + '|' + CFG.ONDE_A1 + '|' + CFG.ONDE_A2;
-  if (sig !== wvSig) { wvSig = sig; setupWaves(); }
-  const t = stats.t * CFG.FLOW_SPEED;
-  for (const w of WV) {
-    if (!w.on) continue;
-    const P = w.per, ox = W / 2 - cx + w.vx * t, oy = H / 2 - cy + w.vy * t;   // origine del mondo + scorrimento, in px CSS
-    const tx = Math.round((((ox % P) + P) % P) * dpr) / dpr, ty = Math.round((((oy % P) + P) % P) * dpr) / dpr;   // sui pixel del dispositivo, come il mare
-    w.el.style.transform = 'translate3d(' + (tx - P) + 'px,' + (ty - P) + 'px,0)';
-  }
-  stats.msFlow += ((performance.now() - t0) - stats.msFlow) * 0.1;
-}
-
 let slickTmp = null;
-function drawSlicks(ox, oy) {               // chiazze quasi ferme: 2 fotogrammi lenti con dissolvenza, deriva minima
-  const t = stats.t, F = [[A.olio1, A.olio2], [A.petr1, A.petr2]];
-  const P = CFG.SLICK_PERIOD, fadeStart = 1 - CFG.SLICK_FADE / P, D = CFG.SLICK_DRIFT;
-  for (const ch of chunks.values()) for (const s of ch.slicks) {
-    const frames = F[s.kind];
-    const px = s.x + ox + Math.sin(t * 0.2 + s.ph) * D, py = s.y + oy + Math.cos(t * 0.17 + s.ph * 1.3) * D * 0.7;
-    if (px < -80 || py < -80 || px > W + 80 || py > H + 80) continue;
-    const f = t / P + s.ph, k = Math.floor(f), u = f - k;
-    const a = u <= fadeStart ? 0 : (u - fadeStart) / (1 - fadeStart), sm = a * a * (3 - 2 * a);   // 0 per un po', poi dissolvenza morbida
-    const ba = sm > 0.5 ? 2 - 2 * sm : 1;                  // il fotogramma che esce si dissolve nella seconda metà: nessuno scatto al cambio
-    // il blu sta nel mare (sotto): la chiazza, che sta sopra, riceve lo stesso velo blu della zona in cui si trova
-    let tint = 0;
-    if (CFG.MARE_BLU >= 1) { const tx = s.x / CFG.TILE, ty = s.y / CFG.TILE; tint = blueAt(tx, ty, depthL(tx, ty, CFG.SEED), CFG.SEED) * CFG.BLUE_A; }
-    let g = ctx, X = px - 64, Y = py - 64;
+function drawSlicks() {
+  const t = stats.t, F = [[I.olio1, I.olio2], [I.petr1, I.petr2]], P = CFG.SLICK_PERIOD, fadeStart = 1 - CFG.SLICK_FADE / P, D = CFG.SLICK_DRIFT * 4;
+  const hw = DW / S / 2, hh = DH / S / 2, u0x = (CX - hw - 300 + SOX) / 4, u1x = (CX + hw + 300 + SOX) / 4, u0y = (CY - hh - 300 + SOY) / 4, u1y = (CY + hh + 300 + SOY) / 4;
+  for (let cy = Math.floor(u0y / CHS); cy <= Math.floor(u1y / CHS); cy++) for (let cx = Math.floor(u0x / CHS); cx <= Math.floor(u1x / CHS); cx++) for (const s of slicksOf(cx, cy)) {
+    const px = s.x * 4 - SOX + Math.sin(t * 0.2 + s.ph) * D, py = s.y * 4 - SOY + Math.cos(t * 0.17 + s.ph * 1.3) * D * 0.7;
+    const f = t / P + s.ph, k = Math.floor(f), u = f - k, a = u <= fadeStart ? 0 : (u - fadeStart) / (1 - fadeStart), sm = a * a * (3 - 2 * a), ba = sm > 0.5 ? 2 - 2 * sm : 1;
+    const frames = F[s.kind], bw = 512, bh = 256;                       // dall'alto sono tonde; sul piano isometrico 2:1 diventano ellissi (largh. 2× altezza)
+    const x0 = sxp(px - bw / 2), y0 = syp(py - bh / 2), x1 = sxp(px + bw / 2), y1 = syp(py + bh / 2);
+    if (x1 < 0 || y1 < 0 || x0 > DW || y0 > DH) continue;
+    const tx = s.x / TS, ty = s.y / TS, tint = blueAt(tx, ty, depthL(tx, ty)) * CFG.BLUE_A;   // il blu sta nel mare: la chiazza riceve lo stesso velo della sua zona
+    let g = ctx, X = x0, Y = y0; const w = x1 - x0, h = y1 - y0;
     if (tint > 0.02) {
-      const sz = Math.ceil(128 * dpr);
-      if (!slickTmp || slickTmp.width !== sz) slickTmp = mkCanvas(sz, sz);
-      g = slickTmp.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, 128, 128); X = 0; Y = 0;
+      if (!slickTmp || slickTmp.width !== w || slickTmp.height !== h) slickTmp = mkCanvas(w, h);
+      g = slickTmp.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, w, h); X = 0; Y = 0;
     }
-    if (ba > 0) { g.globalAlpha = ba; g.drawImage(frames[k & 1], X, Y, 128, 128); }
-    if (sm > 0) { g.globalAlpha = sm; g.drawImage(frames[(k + 1) & 1], X, Y, 128, 128); }
+    if (ba > 0) { g.globalAlpha = ba; g.drawImage(frames[k & 1], X, Y, w, h); }
+    if (sm > 0) { g.globalAlpha = sm; g.drawImage(frames[(k + 1) & 1], X, Y, w, h); }
     g.globalAlpha = 1;
     if (g !== ctx) {
       g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(' + CFG.BLUE_RGB[0] + ',' + CFG.BLUE_RGB[1] + ',' + CFG.BLUE_RGB[2] + ',' + tint.toFixed(3) + ')';
-      g.fillRect(0, 0, 128, 128); g.globalCompositeOperation = 'source-over';
-      ctx.drawImage(slickTmp, 0, 0, slickTmp.width, slickTmp.height, px - 64, py - 64, 128, 128);
+      g.fillRect(0, 0, w, h); g.globalCompositeOperation = 'source-over';
+      ctx.drawImage(slickTmp, x0, y0);
     }
   }
 }
 
+// ---- disegno ----------------------------------------------------------------------------
+let S = 1, DW = 0, DH = 0, CX = 0, CY = 0;
+const sxp = px => Math.round((px - CX) * S + DW / 2), syp = py => Math.round((py - CY) * S + DH / 2);
+function img(im, px, py, w, h, alpha) {
+  w = w == null ? im.width : w; h = h == null ? im.height : h;
+  const x0 = sxp(px), y0 = syp(py), x1 = sxp(px + w), y1 = syp(py + h);
+  if (x1 < 0 || y1 < 0 || x0 > DW || y0 > DH) return;
+  if (alpha != null) ctx.globalAlpha = alpha;
+  ctx.drawImage(im, x0, y0, x1 - x0, y1 - y0);
+  if (alpha != null) ctx.globalAlpha = 1;
+}
+function blitBase() {
+  const sw = DW / S, sh = DH / S, bx = CX - sw / 2 - BASE.x0, by = CY - sh / 2 - BASE.y0;
+  const x0 = Math.max(0, bx), y0 = Math.max(0, by), x1 = Math.min(BASE.w, bx + sw), y1 = Math.min(BASE.h, by + sh);
+  if (x1 <= x0 || y1 <= y0) return;
+  ctx.drawImage(BASE.c, x0, y0, x1 - x0, y1 - y0, (x0 - bx) * S, (y0 - by) * S, (x1 - x0) * S, (y1 - y0) * S);
+}
+function objBox(o) { const c = PX(o.ci, o.cj), w = o.img.width, h = o.img.height; return [c[0] - w / 2, c[1] + o.sw * 32 - h, w, h]; }
+// ombra + schiuma della zattera: una per ciascuna vista disegnata (stessa orientazione del disegno, non un angolo inventato),
+// così ombra e zattera cambiano insieme e la zattera non sembra staccata dall'acqua.
+const RS = {};
+function raftShadow(ang) {
+  const key = Math.round(wrapAng(ang) * 1800 / Math.PI);
+  if (RS[key]) return RS[key];
+  const ci = Math.cos(ang), cj = Math.sin(ang), pad = 40;
+  const pts = [[-1.55, -1.05], [1.55, -1.05], [1.55, 1.05], [-1.55, 1.05]].map(([x, y]) => { const a = ci * x - cj * y, b = cj * x + ci * y; return [(a - b) * 128, (a + b) * 64]; });
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), x0 = Math.min(...xs) - pad, y0 = Math.min(...ys) - pad;
+  const c = mkCanvas(Math.ceil(Math.max(...xs) - x0 + pad), Math.ceil(Math.max(...ys) - y0 + pad)), g = c.getContext('2d');
+  const path = (dx, dy) => { g.beginPath(); pts.forEach((p, n) => n ? g.lineTo(p[0] - x0 + dx, p[1] - y0 + dy) : g.moveTo(p[0] - x0 + dx, p[1] - y0 + dy)); g.closePath(); };
+  g.filter = 'blur(7px)'; g.fillStyle = 'rgba(8,26,34,.42)'; path(5, 8); g.fill();             // ombra stretta, a contatto con l'acqua
+  g.filter = 'blur(3px)'; g.strokeStyle = 'rgba(236,246,246,.30)'; g.lineWidth = 7; path(0, 0); g.stroke();   // filo di schiuma sul pelo dell'acqua
+  return RS[key] = { c, x0, y0 };
+}
+let rfT = null;                                                   // canvas d'appoggio per sfumare due viste
+function drawRaft() {
+  const p = PX(raft.i, raft.j), cyW = p[1] + CFG.WO, n = RAFT.n, step = TAU / n;
+  const f = wrapAng(raft.phi) / step, k = Math.floor(f) % n, k2 = (k + 1) % n;
+  let t = f - Math.floor(f);
+  if (!CFG.RAFT_FADE) t = t > 0.5 ? 1 : 0;
+  else { t = Math.max(0, Math.min(1, (t - RAFT.win[0]) / (RAFT.win[1] - RAFT.win[0]))); t = t * t * (3 - 2 * t); }     // sfumo solo nel tratto centrale (poche viste) o su tutto l'intervallo (16 viste)
+  const A = RAFT.views[k], B = RAFT.views[k2];
+  const sA = raftShadow(k * step), sB = raftShadow(k2 * step);       // ombra e schiuma seguono la stessa sfumatura della zattera
+  if (t < 0.999) img(sA.c, p[0] + sA.x0, cyW + sA.y0, null, null, 1 - t);
+  if (t > 0.001) img(sB.c, p[0] + sB.x0, cyW + sB.y0, null, null, t);
+  if (t < 0.02 || t > 0.98) { const V = t > 0.5 ? B : A; img(V.im, p[0] + V.ox, cyW + V.oy, V.im.width, V.im.height); return; }
+  // sfumo lineare A→B (colori premoltiplicati sommati: (1-t)·A + t·B) in un canvas d'appoggio, poi lo copio
+  const L = Math.min(A.ox, B.ox), T = Math.min(A.oy, B.oy), R = Math.max(A.ox + A.im.width, B.ox + B.im.width), Bt = Math.max(A.oy + A.im.height, B.oy + B.im.height);
+  const w = Math.ceil((R - L) * S) + 2, h = Math.ceil((Bt - T) * S) + 2;
+  if (!rfT || rfT.width !== w || rfT.height !== h) rfT = mkCanvas(w, h);
+  const g = rfT.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, w, h); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = ctx.imageSmoothingQuality;
+  g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1 - t;
+  g.drawImage(A.im, Math.round((A.ox - L) * S), Math.round((A.oy - T) * S), Math.round(A.im.width * S), Math.round(A.im.height * S));
+  g.globalCompositeOperation = 'lighter'; g.globalAlpha = t;
+  g.drawImage(B.im, Math.round((B.ox - L) * S), Math.round((B.oy - T) * S), Math.round(B.im.width * S), Math.round(B.im.height * S));
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  ctx.drawImage(rfT, sxp(p[0] + L), syp(cyW + T));
+}
+function drawPlayer(ghost) {
+  const p = PX(player.i, player.j), walking = player.moving && I['w' + player.face + 1];
+  const im = walking ? I['w' + player.face + (1 + Math.floor(player.ph) % WALK_N)] : I['p' + player.face];
+  const ax = walking ? 35 : im.width / 2, ay = walking ? 104 : 100;        // punto-piedi: (35,104) nei 24 passi, (W/2,100) nel fermo
+  if (!ghost) {  // ombra sotto i piedi
+  const x0 = sxp(p[0] - 17), x1 = sxp(p[0] + 17), y0 = syp(p[1] - 6), y1 = syp(p[1] + 6);
+  ctx.fillStyle = 'rgba(10,20,22,.34)'; ctx.beginPath(); ctx.ellipse((x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2, 0, 0, 7); ctx.fill();
+  }
+  if (!ghost) { img(im, p[0] - ax, p[1] - ay, im.width, im.height); return; }
+  // sagoma chiara semitrasparente (il disegno vero si confonde con la ruggine dei container)
+  const x0 = sxp(p[0] - ax), y0 = syp(p[1] - ay), x1 = sxp(p[0] - ax + im.width), y1 = syp(p[1] - ay + im.height), w = x1 - x0, h = y1 - y0;
+  if (!ghostCv || ghostCv.width !== w || ghostCv.height !== h) ghostCv = mkCanvas(w, h);
+  const g = ghostCv.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, w, h);
+  g.drawImage(im, 0, 0, w, h); g.globalCompositeOperation = 'source-in'; g.fillStyle = 'rgb(236,246,240)'; g.fillRect(0, 0, w, h);
+  ctx.globalAlpha = 0.5; ctx.drawImage(ghostCv, x0, y0); ctx.globalAlpha = 1;
+}
+let ghostCv = null;
+function playerBehind(o) {                   // true se il protagonista va disegnato PRIMA di o (sta dietro)
+  const r = o.rect, pi = player.i, pj = player.j;
+  const behind = pi <= r.i0 || pj <= r.j0, front = pi >= r.i1 || pj >= r.j1;
+  if (behind && !front) return true; if (front && !behind) return false;
+  return pi + pj < o.ci + o.cj;
+}
 function render() {
   const t0 = performance.now();
-  renderInner();
-  stats.msAll += ((performance.now() - t0) - stats.msAll) * 0.1;
-}
-function renderInner() {
-  const cx = Math.round(cam.x * dpr) / dpr, cy = Math.round(cam.y * dpr) / dpr;   // camera sui pixel dello schermo
-  drawSea(cx, cy);                          // canvas di sotto: mare
-  drawBlue(cx, cy);                         // (solo con «Blu: Claude») velo di blu sul mare
-  updateWaves(cx, cy);                      // strati d'onda (DOM) in mezzo
-
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);   // canvas di sopra: oggetti
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const ox = -cx + W / 2, oy = -cy + H / 2;
-  drawSlicks(ox, oy);
-
-  if (dbgMode === 2) {                      // griglia dei chunk
-    ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([10, 8]);
-    ctx.font = '12px ui-monospace,monospace'; ctx.fillStyle = 'rgba(255,255,255,.9)';
-    for (const ch of chunks.values()) {
-      ctx.strokeRect(ch.cx * CHK + ox, ch.cy * CHK + oy, CHK, CHK);
-      ctx.fillText(ch.cx + ',' + ch.cy, ch.cx * CHK + ox + 8, ch.cy * CHK + oy + 18);
-    }
-    ctx.setLineDash([]);
+  S = CFG.ART * dpr; DW = cv.width; DH = cv.height;
+  CX = Math.round(cam.x * S) / S; CY = Math.round(cam.y * S) / S;
+  updateSea();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, DW, DH);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = S >= 1 ? 'low' : 'high';
+  if (T('olio') === '1') drawSlicks();   // ingrandendo basta bilineare (stesso risultato, 3x più veloce); rimpicciolendo serve 'high'
+  const rr = raftRect(), raftBehind = rr.j1 <= SLAB.j0 || rr.i1 <= SLAB.i0;
+  if (raftBehind) drawRaft();
+  blitBase();
+  let pDone = mode === 'sail', ghost = false;
+  const pc = PX(player.i, player.j), pr = [pc[0] - 35, pc[1] - 104, pc[0] + 35, pc[1]];
+  for (const o of OBJS) {
+    if (!pDone && playerBehind(o)) { drawPlayer(); pDone = true; }
+    const b = objBox(o); img(o.img, b[0], b[1], b[2], b[3]);
+    if (pDone && mode === 'walk' && o.solid && T('sagoma') === '1' && b[0] < pr[2] && b[0] + b[2] > pr[0] && b[1] < pr[3] && b[1] + b[3] > pr[1]) ghost = true;
   }
-
-  // scia (la disegna il gioco)
-  const t = stats.t;
-  ctx.lineCap = 'round';
-  for (let i = 1; i < trail.length; i++) {
-    const a = trail[i - 1], b = trail[i], age = (t - b.t) / 2, fade = Math.max(0, 1 - age);
-    const spread = 8 + age * 26, nx = -Math.sin(b.h), ny = Math.cos(b.h), nxa = -Math.sin(a.h), nya = Math.cos(a.h);
-    const spreadA = 8 + ((t - a.t) / 2) * 26;
-    ctx.strokeStyle = 'rgba(222,234,231,' + (0.42 * fade * Math.min(1, b.s + 0.3)).toFixed(3) + ')';
-    ctx.lineWidth = 2 + 4 * fade;
-    for (const sgn of [-1, 1]) {
-      ctx.beginPath();
-      ctx.moveTo(a.x + ox + nxa * spreadA * sgn, a.y + oy + nya * spreadA * sgn);
-      ctx.lineTo(b.x + ox + nx * spread * sgn, b.y + oy + ny * spread * sgn);
-      ctx.stroke();
-    }
-  }
-
-  // zattera: sprite di Muse (prua a sinistra -> +PI) con l'ombra disegnata dal gioco, luce da in alto a sinistra
-  const rx = raft.x + ox, ry = raft.y + oy;
-  ctx.save();
-  ctx.shadowColor = 'rgba(10,28,34,.45)'; ctx.shadowBlur = 7 * dpr; ctx.shadowOffsetX = 6 * dpr; ctx.shadowOffsetY = 8 * dpr;
-  ctx.translate(rx, ry); ctx.rotate(raft.h + Math.PI);
-  ctx.drawImage(A.zattera, -96, -64, 192, 128);
-  ctx.restore();
-
+  if (!pDone) drawPlayer();
+  else if (ghost) drawPlayer(true);          // dietro a un oggetto alto: se ne vede la sagoma
+  if (!raftBehind) drawRaft();
   // joystick
   if (stick.active) {
-    const dx = stick.x - stick.ox, dy = stick.y - stick.oy, dist = Math.hypot(dx, dy), k = dist > CFG.STICK_R ? CFG.STICK_R / dist : 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const dx = stick.x - stick.ox, dy = stick.y - stick.oy, d = Math.hypot(dx, dy), k = d > CFG.STICK_R ? CFG.STICK_R / d : 1;
     ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(stick.ox, stick.oy, CFG.STICK_R, 0, 7); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = 'rgba(255,255,255,.55)';
-    ctx.beginPath(); ctx.arc(stick.ox + dx * k, stick.oy + dy * k, 22, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(stick.ox + dx * k, stick.oy + dy * k, 22, 0, 7); ctx.fill();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+  stats.msAll += ((performance.now() - t0) - stats.msAll) * 0.1;
+}
+
+// ---- impostazioni, salvataggi, menu ☰ ------------------------------------------------------
+const mem = {};                                 // ripiego se il telefono non lascia scrivere (localStorage può mancare o dare errore)
+function lsGet(k) { try { const v = localStorage.getItem(k); if (v !== null) return v; } catch (_) {} return mem[k] == null ? null : mem[k]; }
+function lsSet(k, v) { mem[k] = v; try { localStorage.setItem(k, v); } catch (_) {} }
+
+// Grafica normale: Auto / Bassa / Media / Alta. «cap» = tetto dei pixel del telefono per pixel CSS (nitidezza); «flow» = luce scorrevole sul mare.
+const GFX = { bassa: { cap: 1.5, flow: 0, txt: 'nitidezza ×1,5 e niente luce scorrevole sul mare' }, media: { cap: 2.5, flow: 1, txt: 'nitidezza ×2,5' }, alta: { cap: 4, flow: 1, txt: 'tutta la nitidezza del telefono' } };
+let autoLevel = 'alta';                        // livello usato da «Auto»: parte dal massimo, scende solo se il telefono non regge
+const gfxLevel = () => settings.gfx === 'auto' ? autoLevel : settings.gfx;
+const lightOn = () => T('luce') === '1' && GFX[gfxLevel()].flow === 1;
+
+// Grafica di prova: ogni prova nuova è una riga qui (si vede nel menu → Prova). Le prove non toccano la grafica normale; «live» = si applica subito, «reload» = serve riavviare.
+const TEST_OPTS = [
+  { k: 'layout', label: 'Disposizione della piattaforma', def: 'nuova', reload: true,
+    ch: () => [['nuova', 'Nuova (v0.2g)'], ['vecchia', 'Precedente (v0.2f)']], hint: 'Nuova: pozzo → tubi → serbatoio e baracca, magazzino e gru dietro.' },
+  { k: 'viste', label: 'Viste della zattera', def: 'auto', reload: true,
+    ch: () => { const av = new Set(CFG.RAFT_AVAIL), c = [['auto', 'Automatico']]; for (const n of [4, 8, 16]) { const ks = []; for (let k = 0; k < 16; k += 16 / n) ks.push(k); if (ks.every(k => av.has(k))) c.push([String(n), n + ' viste']); } return c; },
+    hint: 'Più viste = rotazione più fluida; compaiono qui man mano che Muse le consegna.' },
+  { k: 'sfumo', label: 'Sfumatura fra le viste della zattera', def: '1', live: true, ch: () => [['1', 'Sì'], ['0', 'No (salto netto)']] },
+  { k: 'onde', label: 'Onde di Muse sul mare', def: '1', live: true, ch: () => [['1', 'Sì'], ['0', 'No']] },
+  { k: 'luce', label: 'Luce scorrevole sul mare', def: '1', live: true, ch: () => [['1', 'Sì'], ['0', 'No']] },
+  { k: 'olio', label: 'Macchie d’olio e di petrolio', def: '1', live: true, ch: () => [['1', 'Sì'], ['0', 'No']] },
+  { k: 'sagoma', label: 'Sagoma chiara dietro agli oggetti', def: '1', live: true, ch: () => [['1', 'Sì'], ['0', 'No']] },
+  { k: 'fps', label: 'Info tecniche (fps, misure)', def: '0', live: true, ch: () => [['0', 'Nascoste'], ['1', 'Visibili']], hint: 'Si cambia anche toccando la versione in basso.' }
+];
+const settings = { gfx: 'auto', test: {} };
+for (const o of TEST_OPTS) settings.test[o.k] = o.def;
+try {
+  const sv = JSON.parse(lsGet('derivaIsoSet1') || '{}');
+  if (sv.gfx === 'auto' || GFX[sv.gfx]) settings.gfx = sv.gfx;
+  for (const o of TEST_OPTS) if (sv.test && sv.test[o.k] != null && o.ch().some(c => c[0] === String(sv.test[o.k]))) settings.test[o.k] = String(sv.test[o.k]);
+} catch (_) {}
+const T = k => settings.test[k];
+const loadedTest = Object.assign({}, settings.test);   // com'erano all'avvio: se una prova «reload» cambia, il menu offre «Applica e riavvia»
+function saveSettings() { lsSet('derivaIsoSet1', JSON.stringify(settings)); }
+function applyTest() { CFG.RAFT_FADE = T('sfumo') === '1' ? 1 : 0; dbgMode = T('fps') === '1' ? 1 : 0; dbgEl.style.display = dbgMode ? 'block' : 'none'; wvSig = ''; }
+applyTest();
+// «Auto»: se il lavoro per fotogramma resta alto per un po', scende di un livello (non risale: lo si sceglie a mano)
+let perfN = 0, perfSum = 0;
+function perfWatch(ms) {
+  if (settings.gfx !== 'auto' || autoLevel === 'bassa' || document.hidden || stats.t < 6 || ms > 80) return;
+  perfSum += ms;
+  if (++perfN >= 150) {
+    const avg = perfSum / perfN; perfN = 0; perfSum = 0;
+    if (avg > 16) { autoLevel = autoLevel === 'alta' ? 'media' : 'bassa'; resize(); toast('Il telefono fa fatica: grafica ' + autoLevel + ' (cambiala in Menu → Grafica)'); }
   }
 }
 
-// ---- debug e ciclo --------------------------------------------------------------------
-const ft = []; let dbgTimer = 0;
+// ---- salvataggi: automatico + 3 slot, più il codice corto -------------------------------------------
+let playSec = 0;
+const FACES = ['ne', 'se', 'so', 'no'], SLOTS = ['auto', '1', '2', '3'];
+const slotKey = n => 'derivaIsoSave_' + n;
+function readSlot(n) { try { const o = JSON.parse(lsGet(slotKey(n))); return o && o.v === 1 ? o : null; } catch (_) { return null; } }
+function snapshot() {
+  return { v: 1, t: Date.now(), play: Math.round(playSec), mode, p: { i: +player.i.toFixed(2), j: +player.j.toFixed(2), face: player.face }, r: { i: +raft.i.toFixed(2), j: +raft.j.toFixed(2), phi: +wrapAng(raft.phi).toFixed(3) } };
+}
+function writeSlot(n) { const sn = snapshot(); lsSet(slotKey(n), JSON.stringify(sn)); return sn; }
+let lastAutoSig = '';
+function autoSave(force) {
+  if (!ready) return;
+  const sn = snapshot(), sig = JSON.stringify([sn.mode, sn.p, sn.r]);
+  if (!force && sig === lastAutoSig) return;
+  lastAutoSig = sig; lsSet(slotKey('auto'), JSON.stringify(sn));
+}
+setInterval(() => autoSave(false), 6000);
+document.addEventListener('visibilitychange', () => { if (document.hidden) autoSave(true); });
+window.addEventListener('pagehide', () => autoSave(true));
+function snapCam() {
+  if (mode === 'walk') { const p = PX(player.i, player.j); cam.x = p[0]; cam.y = p[1] - 60; } else { const p = PX(raft.i, raft.j); cam.x = p[0]; cam.y = p[1] + CFG.WO - 40; }
+}
+function nearestFree(i, j) {                    // se la posizione salvata ora è dentro un oggetto (disposizione cambiata), sposto sulla casella libera più vicina
+  if (walkableAt(i, j) && !playerBlocked(i, j)) return [i, j];
+  let best = null, bd = 1e9;
+  for (const [k, t] of GRID) { if (t === 'h') continue; const [a, b] = k.split(',').map(Number); if (playerBlocked(a, b)) continue; const d = (a - i) * (a - i) + (b - j) * (b - j); if (d < bd) { bd = d; best = [a, b]; } }
+  return best || [START.p.i, START.p.j];
+}
+function restore(s) {
+  if (!s || s.v !== 1 || !s.p || !s.r) return false;
+  const num = (x, d, lim) => typeof x === 'number' && isFinite(x) && Math.abs(x) < lim ? x : d;
+  raft.i = num(s.r.i, START.r.i, 1e5); raft.j = num(s.r.j, START.r.j, 1e5); raft.phi = wrapAng(num(s.r.phi, 0, 100));
+  raft.vi = raft.vj = raft.speed = 0; pushRaftOut();
+  const q = nearestFree(num(s.p.i, START.p.i, 1e3), num(s.p.j, START.p.j, 1e3));
+  player.i = q[0]; player.j = q[1]; player.vi = player.vj = 0; player.face = FACES.includes(s.p.face) ? s.p.face : 'se'; player.moving = false; player.ph = 0;
+  mode = s.mode === 'sail' ? 'sail' : 'walk'; playSec = num(s.play, 0, 1e9);
+  stick.active = false; stick.id = null; snapCam(); updateAction(); lastAutoSig = '';
+  return true;
+}
+function newGame() {
+  Object.assign(player, { i: START.p.i, j: START.p.j, vi: 0, vj: 0, face: 'se', moving: false, ph: 0 });
+  Object.assign(raft, { i: START.r.i, j: START.r.j, phi: 0, vi: 0, vj: 0, speed: 0 });
+  mode = 'walk'; playSec = 0; snapCam(); updateAction(); autoSave(true); closeMenu(); toast('Nuova partita');
+}
+// codice corto: DRV1-<campi in base 36 separati da punti>-<controllo>. Numeri con segno «a zig-zag» (niente «-» dentro) così il codice resta semplice da copiare.
+const zz = n => n < 0 ? -2 * n - 1 : 2 * n, unzz = z => z % 2 ? -(z + 1) / 2 : z / 2;
+function ck(s) { let h = 7; for (let k = 0; k < s.length; k++) h = (h * 31 + s.charCodeAt(k)) % 46656; return h.toString(36).padStart(3, '0'); }
+function makeCode(sn) {
+  const f = [1, sn.mode === 'sail' ? 1 : 0, Math.round(sn.p.i * 100), Math.round(sn.p.j * 100), Math.max(0, FACES.indexOf(sn.p.face)), Math.round(sn.r.i * 100), Math.round(sn.r.j * 100), Math.round(sn.r.phi * 1800 / Math.PI) % 3600, sn.play];
+  const body = f.map(n => zz(n).toString(36)).join('.');
+  return ('DRV1-' + body + '-' + ck(body)).toUpperCase();
+}
+function parseCode(str) {
+  const m = String(str || '').trim().replace(/\s+/g, '').toLowerCase().split('-');
+  if (m.length !== 3 || m[0] !== 'drv1' || ck(m[1]) !== m[2]) return null;
+  const f = m[1].split('.').map(x => unzz(parseInt(x, 36)));
+  if (f.length !== 9 || f.some(x => !isFinite(x)) || f[0] !== 1) return null;
+  return { v: 1, t: Date.now(), play: Math.max(0, f[8]), mode: f[1] ? 'sail' : 'walk', p: { i: f[2] / 100, j: f[3] / 100, face: FACES[f[4]] || 'se' }, r: { i: f[5] / 100, j: f[6] / 100, phi: f[7] * Math.PI / 1800 } };
+}
+
+// ---- menu ------------------------------------------------------------------------------------------
+const NOVITA = [
+  ['v0.2h', 'Prima versione come app (APK). Menu ☰ con salvataggi (automatico, 3 slot e codice), Grafica (Auto/Bassa/Media/Alta) e Grafica di prova. Nuova disposizione della piattaforma: pozzo → tubi → serbatoio con la baracca del rifornimento, magazzino di container e gru dietro. Sagoma chiara quando cammini dietro un oggetto.'],
+  ['v0.2f', 'Zattera: prime 4 viste nuove di Muse (lotto A) e zattera NE corretta. Con le altre viste la rotazione diventerà fluida.'],
+  ['v0.2e', 'Zoom con + e −, e il mare com’era nel gioco di prima: profondità, blu, onde, macchie d’olio.'],
+  ['v0.2d', 'Camminata del protagonista (6 passi per direzione): provvisoria, la rifà Muse con braccia e gambe migliori.'],
+  ['v0.2a–c', 'Prima prova isometrica: piattaforma a rombi, zattera che gira, Sali / Scendi.']
+];
+const STORICO = [['storico/index_v0.1b.8.html', 'v0.1b.8 · vista dall’alto (l’ultima di prima)'], ['storico/index_v0.1b.7.html', 'v0.1b.7'], ['storico/index_v0.1b.1_provvisoria.html', 'v0.1b.1 provvisoria']];
+const pnl = document.getElementById('pnl'), cbody = document.getElementById('cbody'), tabsEl = document.getElementById('tabs'), toastEl = document.getElementById('toast');
+const TABS = [['partita', 'Partita'], ['grafica', 'Grafica'], ['prova', 'Prova'], ['novita', 'Novità']];
+let menuOpen = false, tab = 'partita', paused = false, toastT = 0;
+function toast(msg) { toastEl.textContent = msg; toastEl.style.opacity = 1; clearTimeout(toastT); toastT = setTimeout(() => { toastEl.style.opacity = 0; }, 2600); }
+function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+function btn(label, fn, cls) { const b = el('button', 'btn' + (cls ? ' ' + cls : ''), label); b.addEventListener('click', fn); return b; }
+function seg(items, cur, fn) { const s = el('div', 'seg'); for (const [v, l] of items) { const b = el('button', v === cur ? 'on' : '', l); b.addEventListener('click', () => fn(v)); s.appendChild(b); } return s; }
+function fmtPlay(s) { const m = Math.floor(s / 60); return m < 1 ? 'meno di 1 min di gioco' : m < 60 ? m + ' min di gioco' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min di gioco'; }
+function describe(sv) { return (sv.mode === 'sail' ? 'in zattera' : 'a piedi') + ' · ' + fmtPlay(sv.play || 0) + ' · ' + new Date(sv.t).toLocaleString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+function copyText(txt, inp) {
+  const ok = () => toast('Codice copiato');
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(ok, () => fallback()); return; } } catch (_) {}
+  fallback();
+  function fallback() { try { inp.focus(); inp.select(); document.execCommand('copy'); ok(); } catch (_) { toast('Seleziona il codice e copialo a mano'); } }
+}
+function tabPartita() {
+  const b = cbody; b.textContent = '';
+  b.appendChild(el('div', 'h', 'Salvataggi'));
+  for (const n of SLOTS) {
+    const sv = readSlot(n), r = el('div', 'row'), info = el('div', 'info'), name = n === 'auto' ? 'Automatico' : 'Slot ' + n;
+    info.appendChild(el('b', '', name)); info.appendChild(el('span', '', sv ? describe(sv) : 'vuoto')); r.appendChild(info);
+    if (n !== 'auto') r.appendChild(btn('Salva', () => { writeSlot(n); toast('Salvato nello slot ' + n); tabPartita(); }));
+    if (sv) r.appendChild(btn('Carica', () => { if (restore(sv)) { autoSave(true); closeMenu(); toast('Caricato: ' + name); } }));
+    b.appendChild(r);
+  }
+  b.appendChild(el('div', 'note', 'Il salvataggio automatico si aggiorna da solo mentre giochi e quando esci.'));
+  b.appendChild(el('div', 'h', 'Codice di salvataggio'));
+  b.appendChild(el('div', 'note', 'Un codice corto per tenere una copia o portare la partita su un altro telefono.'));
+  const out = el('input', 'code'); out.readOnly = true; out.value = makeCode(snapshot());
+  const r2 = el('div', 'row'); r2.appendChild(out); r2.appendChild(btn('Copia', () => copyText(out.value, out))); b.appendChild(r2);
+  const inp = el('input', 'code'); inp.placeholder = 'Incolla qui un codice DRV1-…'; inp.autocapitalize = 'characters'; inp.setAttribute('autocomplete', 'off'); inp.spellcheck = false;
+  const r3 = el('div', 'row'); r3.appendChild(inp);
+  r3.appendChild(btn('Carica codice', () => { const sn = parseCode(inp.value); if (sn && restore(sn)) { autoSave(true); closeMenu(); toast('Partita caricata dal codice'); } else toast('Codice non valido: ricontrolla di averlo copiato tutto'); }));
+  b.appendChild(r3);
+  b.appendChild(el('div', 'h', 'Altro'));
+  const r4 = el('div', 'row'), nb = btn('Nuova partita', () => {
+    if (!nb.dataset.arm) { nb.dataset.arm = '1'; nb.textContent = 'Sicuro? Tocca ancora'; setTimeout(() => { nb.dataset.arm = ''; nb.textContent = 'Nuova partita'; }, 3500); } else newGame();
+  }, 'warn');
+  r4.appendChild(btn('Continua', closeMenu, 'go')); r4.appendChild(nb); b.appendChild(r4);
+  b.appendChild(el('div', 'note', 'Gli slot restano anche con «Nuova partita».'));
+}
+function tabGrafica() {
+  const b = cbody; b.textContent = '';
+  b.appendChild(el('div', 'h', 'Grafica'));
+  b.appendChild(seg([['auto', 'Auto'], ['bassa', 'Bassa'], ['media', 'Media'], ['alta', 'Alta']], settings.gfx, v => {
+    settings.gfx = v; if (v === 'auto') { autoLevel = 'alta'; perfN = 0; perfSum = 0; } saveSettings(); resize(); tabGrafica();
+  }));
+  const L = gfxLevel();
+  b.appendChild(el('div', 'note', 'In uso: ' + L + ' (' + GFX[L].txt + ', dpr ' + dpr.toFixed(2) + ').'));
+  b.appendChild(el('div', 'note', 'Auto parte dalla grafica alta e scende solo se il telefono non regge il ritmo. Alta usa tutta la risoluzione del telefono. La grafica non viene mai ridotta di nascosto: se cambia, lo vedi qui e in un avviso.'));
+  b.appendChild(el('div', 'note', 'Lo zoom si cambia coi bottoni + e − a destra.'));
+}
+function tabProva() {
+  const b = cbody; b.textContent = '';
+  b.appendChild(el('div', 'h', 'Grafica di prova'));
+  b.appendChild(el('div', 'note', 'Qui si provano le novità grafiche senza toccare la grafica normale. Ogni riga si può spegnere o riaccendere.'));
+  let needReload = false;
+  for (const o of TEST_OPTS) {
+    const r = el('div', 'row'), info = el('div', 'info'); info.appendChild(el('b', '', o.label)); if (o.hint) info.appendChild(el('span', '', o.hint)); r.appendChild(info);
+    r.appendChild(seg(o.ch(), T(o.k), v => { settings.test[o.k] = v; saveSettings(); applyTest(); tabProva(); }));
+    b.appendChild(r);
+    if (o.reload && T(o.k) !== loadedTest[o.k]) needReload = true;
+  }
+  const r = el('div', 'row');
+  if (needReload) r.appendChild(btn('Applica e riavvia', () => { autoSave(true); location.reload(); }, 'go'));
+  r.appendChild(btn('Tutto com’era (grafica normale)', () => { for (const o of TEST_OPTS) settings.test[o.k] = o.def; saveSettings(); applyTest(); tabProva(); }, 'warn'));
+  b.appendChild(r);
+}
+function tabNovita() {
+  const b = cbody; b.textContent = '';
+  b.appendChild(el('div', 'h', 'Novità — Deriva ' + CFG.VERSION));
+  for (const [v, t] of NOVITA) { const d = el('div', 'note nov'); d.appendChild(el('b', '', v + '  ')); d.appendChild(document.createTextNode(t)); b.appendChild(d); }
+  const r = el('div', 'row');
+  r.appendChild(btn('Registro completo delle modifiche', () => {
+    const pre = el('pre', '', 'Carico…'); b.appendChild(pre);
+    fetch('CHANGELOG.md?' + Date.now(), { cache: 'no-store' }).then(x => x.ok ? x.text() : Promise.reject()).then(t => { pre.textContent = t.replace(/^#.*\n/, ''); }).catch(() => { pre.textContent = 'Non disponibile adesso (serve la connessione).'; });
+  }));
+  b.appendChild(r);
+  b.appendChild(el('div', 'h', 'Versioni precedenti'));
+  b.appendChild(el('div', 'note', 'Si aprono come pagina a parte; per tornare qui usa «indietro» del telefono.'));
+  for (const [href, t] of STORICO) { const a = el('a', 'btn', t); a.href = href; a.style.margin = '3px 6px 3px 0'; b.appendChild(a); }
+}
+function showTab(t) {
+  tab = t; tabsEl.textContent = ''; toastEl.style.opacity = 0;
+  for (const [k, l] of TABS) { const bt = el('button', k === t ? 'on' : '', l); bt.addEventListener('click', () => showTab(k)); tabsEl.appendChild(bt); }
+  cbody.scrollTop = 0; ({ partita: tabPartita, grafica: tabGrafica, prova: tabProva, novita: tabNovita })[t]();
+}
+function openMenu(t) {
+  if (menuOpen) return; menuOpen = true; paused = true; stick.active = false; stick.id = null; keys.l = keys.r = keys.u = keys.d = 0;
+  autoSave(true); pnl.style.display = 'flex'; showTab(t || tab);
+  try { history.pushState({ m: 1 }, ''); } catch (_) {}      // il tasto «indietro» di Android chiude il menu invece di uscire dal gioco
+}
+function closeMenu(fromPop) {
+  if (!menuOpen) return; menuOpen = false; paused = false; pnl.style.display = 'none'; last = performance.now();
+  if (fromPop !== true) { try { if (history.state && history.state.m) history.back(); } catch (_) {} }
+}
+window.addEventListener('popstate', () => { if (menuOpen) closeMenu(true); });
+document.getElementById('menuBtn').addEventListener('click', () => openMenu());
+document.getElementById('cx').addEventListener('click', () => closeMenu());
+window.addEventListener('keydown', e => { if (e.key === 'Escape') { if (menuOpen) closeMenu(); else openMenu(); } });
+// aggiornamenti: se su Pages c'è una build nuova compare un avviso; toccandolo si salva e si ricarica (nessuna ricarica a sorpresa)
+function checkUpdate() {
+  if (BUILD.indexOf('__') === 0) return;
+  fetch('v.txt?' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(t => {
+    t = (t || '').trim(); if (t && t !== BUILD) document.getElementById('upd').style.display = 'block';
+  }).catch(() => {});
+}
+document.getElementById('upd').addEventListener('pointerdown', () => { autoSave(true); location.reload(); });
+setInterval(checkUpdate, 45000);
+
+// ---- debug e ciclo ------------------------------------------------------------------------
+let dbgTimer = 0;
 function updateDebug(dt) {
   dbgTimer += dt; if (dbgTimer < 0.25) return; dbgTimer = 0;
-  const pd = dbgMode === 0 ? 'none' : 'flex';
-  if (provaEl.style.display !== pd) provaEl.style.display = pd;
   if (dbgMode === 0) { dbgEl.style.display = 'none'; return; }
   dbgEl.style.display = 'block';
-  const nowMs = performance.now();
-  if (nowMs - updateDebug.last < 250) return;                // il testo si rinfresca 4 volte al secondo
-  updateDebug.last = nowMs;
   let sum = 0, peak = 0; for (const f of ft) { sum += f; if (f > peak) peak = f; }
-  const avg = ft.length ? sum / ft.length : 16.7;
-  const txf = raft.x / CFG.TILE, tyf = raft.y / CFG.TILE, rc = raftChunk();
-  const L = depthL(txf, tyf, CFG.SEED);
-  const lvl = L < 0.5 ? 'basso' : L < 1.5 ? 'medio' : 'fondo';
-  const m = Math.floor(stats.t / 60), s = Math.floor(stats.t % 60);
+  const avg = ft.length ? sum / ft.length : 16.7, e = mode === 'walk' ? player : raft;
   dbgEl.textContent =
-    'Deriva ' + CFG.VERSION + '  seed ' + CFG.SEED + (BUILD.indexOf('__') === 0 ? '' : '  build ' + BUILD.slice(0, 7)) + '\n' +
-    'tessera ' + Math.floor(txf) + ', ' + Math.floor(tyf) + '\n' +
-    'chunk ' + rc[0] + ', ' + rc[1] + '  attivi ' + stats.loaded + '\n' +
-    'mare ' + lvl + '  L=' + L.toFixed(2) + '\n' +
-    'vel ' + (raft.speed / CFG.TILE).toFixed(1) + ' t/s  rotta ' + Math.round(((raft.h * 180 / Math.PI) % 360 + 360) % 360) + '°\n' +
-    'percorso ' + Math.round(stats.dist / CFG.TILE) + ' tessere  ' + m + ':' + String(s).padStart(2, '0') + '\n' +
+    'Deriva ' + CFG.VERSION + ' · isometrica' + (BUILD.indexOf('__') === 0 ? '' : '  build ' + BUILD.slice(0, 7)) + '\n' +
+    'grafica ' + gfxLevel() + (settings.gfx === 'auto' ? ' (auto)' : '') + '  layout ' + T('layout') + '  viste zattera ' + RAFT.n + '\n' +
+    (mode === 'walk' ? 'a piedi  ' + player.face : 'in zattera  ' + Math.round(wrapAng(raft.phi) * 180 / Math.PI) + '°') + '  tessera ' + e.i.toFixed(1) + ', ' + e.j.toFixed(1) + '\n' +
+    'schermo ' + W + 'x' + H + '  dpr ' + dpr.toFixed(2) + '\n' +
+    'zoom ' + CFG.ART.toFixed(2) + '  scala disegni ' + S.toFixed(2) + ' px/px PNG' + (S > 1 ? '  (ingrandimento)' : '') + '\n' +
     'fps ' + Math.round(1000 / avg) + '  picco ' + peak.toFixed(1) + ' ms\n' +
-    'ms: mare ' + stats.msSea.toFixed(1) + '  onde ' + stats.msFlow.toFixed(1) + '  tutto ' + stats.msAll.toFixed(1) + '  blocchi ' + seaBlocks.size + '\n' +
-    'chunk: ultimo ' + stats.genMs.toFixed(1) + ' ms  max ' + stats.genMax.toFixed(1) + ' ms';
+    'ms: disegno ' + stats.msAll.toFixed(1) + '  mare ' + stats.msSea.toFixed(1);
 }
-updateDebug.last = 0;
-verEl.textContent = CFG.VERSION + ' · grafica Muse';
+verEl.textContent = CFG.VERSION + ' · isometrica · grafica Muse';
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000)); last = now;
-  if (window.innerWidth !== W || window.innerHeight !== H) resize();     // più affidabile dell'evento in un riquadro
-  if (!portrait) { update(dt); render(); }
-  if (frame.prev) { ft.push(now - frame.prev); if (ft.length > 120) ft.shift(); }   // tempo tra un fotogramma e l'altro
+  if (window.innerWidth !== W || window.innerHeight !== H) resize();
+  if (!portrait) { const w0 = performance.now(); if (!paused) update(dt); render(); if (!paused) perfWatch(performance.now() - w0); }
+  if (frame.prev) { ft.push(now - frame.prev); if (ft.length > 120) ft.shift(); }
   frame.prev = now;
   updateDebug(dt);
   requestAnimationFrame(frame);
 }
-// aggiornamenti: se su Pages c'è una build nuova compare un avviso (niente ricarica a sorpresa: non c'è ancora il salvataggio)
-function checkUpdate() {
-  if (BUILD.indexOf('__') === 0) return;
-  fetch('v.txt?' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(t => {
-    t = (t || '').trim();
-    if (t && t !== BUILD) document.getElementById('upd').style.display = 'block';
-  }).catch(() => {});
-}
-document.getElementById('upd').addEventListener('pointerdown', () => location.reload());
-setInterval(checkUpdate, 45000);
-
-{ const rc = raftChunk(); ensureChunks(rc[0], rc[1]); }
-loadAssets().then(() => {
-  ready = true;
-  resize(); try { render(); } catch (e) {}                   // compone subito il mare visibile, con la schermata «Carico» ancora sopra
+resize();
+loadImages().then(setupRaftViews).then(() => {
+  buildWorld(); buildBase();
+  const sv = new URLSearchParams(location.search).has('nuova') ? null : readSlot('auto');
+  if (sv && restore(sv)) hintEl.style.opacity = 0; else snapCam();
+  ready = true; resize(); try { update(0.001); render(); } catch (e) { console.error(e); }
   loadEl.style.display = 'none';
   last = performance.now(); requestAnimationFrame(frame);
   setTimeout(() => { hintEl.style.opacity = 0; }, 9000);
 }).catch(err => { loadEl.textContent = 'Grafica non caricata: ' + err.message; });
 
-// per le prove automatiche
-window.DERIVA = { sv, CFG, raft, cam, chunks, stats, stick, keys, update, render, ensureChunks, depthL, hash2, fbm, A, isReady: () => ready };
+window.ISO = { settings, T, applyTest, snapshot, restore, makeCode, parseCode, readSlot, writeSlot, autoSave, openMenu, closeMenu, newGame, showTab, perfWatch, gfxLevel, snapCam, blocked: (i, j) => playerBlocked(i, j), zoomStep, setArt, CFG, RAFT, player, raft, cam, stats, stick, keys, OBJS, GRID, BASE, update, render, doAction, pickFace, I, isReady: () => ready, setMode: m => { mode = m; }, getMode: () => mode };
 </script>
 </body>
 </html>

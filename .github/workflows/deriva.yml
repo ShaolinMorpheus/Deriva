@@ -1,16 +1,92 @@
-name: Crea APK
+name: Deriva — pubblica il gioco e crea l'APK
 
+# Come si usa (vedi PUBBLICAZIONE.md):
+#  • carichi nel repo (cartella principale) uno zip che ti do io: si avvia da solo, lo scompatta nel repo,
+#    pubblica il gioco su GitHub Pages e, se nello zip c'è il file «.ricompila-apk», crea anche l'APK;
+#  • oppure Actions → «Deriva — pubblica il gioco e crea l'APK» → Run workflow (con o senza APK).
 on:
   push:
-    branches: [main, master]
-    paths: ['www/**', 'capacitor.config.json', 'package.json', 'debug.keystore', '.github/workflows/build-apk.yml']
+    branches: [main]
+    paths: ['*.zip']
   workflow_dispatch:
+    inputs:
+      apk:
+        description: "Crea anche l'APK"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: deriva
+  cancel-in-progress: false
 
 jobs:
-  build:
+  applica:
+    runs-on: ubuntu-latest
+    outputs:
+      apk: ${{ steps.zip.outputs.apk }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scompatta lo zip nel repo
+        id: zip
+        env:
+          EVENTO: ${{ github.event_name }}
+          VUOLE_APK: ${{ inputs.apk }}
+        run: |
+          apk=false
+          z=$(ls -1t ./*.zip 2>/dev/null | head -1 || true)
+          if [ -n "$z" ]; then
+            echo "Zip trovato: $z"
+            unzip -o -q "$z" -x '.github/*' '__MACOSX/*' || [ $? -eq 1 ]     # 1 = solo avvisi: va bene
+            rm -f ./*.zip
+            if [ -f .ricompila-apk ]; then apk=true; rm -f .ricompila-apk; fi
+            git config user.name "Deriva (pacchetto)"
+            git config user.email "actions@users.noreply.github.com"
+            git add -A
+            git commit -m "Pacchetto applicato: ${z#./}" || echo "Niente di nuovo da salvare"
+            git push
+          else
+            echo "Nessuno zip: uso il repo com'è"
+          fi
+          if [ "$EVENTO" = "workflow_dispatch" ] && [ "$VUOLE_APK" = "true" ]; then apk=true; fi
+          echo "apk=$apk" >> "$GITHUB_OUTPUT"
+
+  pagina:
+    needs: applica
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/configure-pages@v5
+      - name: Numero di versione (l'app si accorge dell'aggiornamento) e registro delle modifiche
+        run: |
+          sha=$(git rev-parse HEAD)
+          sed -i "s/__BUILD__/${sha}/" www/index.html
+          printf '%s' "$sha" > www/v.txt
+          cp CHANGELOG.md www/CHANGELOG.md
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: www
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  apk:
+    needs: applica
+    if: needs.applica.outputs.apk == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - uses: actions/setup-node@v4
         with:
@@ -102,8 +178,19 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
-      - name: Salva l'APK
+      - name: Salva l'APK (scheda Actions → questa esecuzione → Artifacts)
         uses: actions/upload-artifact@v4
         with:
           name: deriva-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Pubblica l'APK come file da scaricare (Releases → «apk-ultimo»)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk Deriva.apk
+          gh release delete apk-ultimo --cleanup-tag --yes 2>/dev/null || true
+          gh release create apk-ultimo Deriva.apk --target "$(git rev-parse HEAD)" \
+            --title "Deriva APK (compilazione ${{ github.run_number }})" \
+            --notes "L'app carica il gioco da GitHub Pages: gli aggiornamenti del gioco arrivano da soli, l'APK si reinstalla solo se cambia l'app stessa."
