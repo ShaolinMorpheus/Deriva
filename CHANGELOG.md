@@ -2,6 +2,10 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2p — 26 nov 2026 — in gioco si legge «v0.2p · isometrica · grafica Muse»
+- **Tolta l'ombra rettangolare** sotto la zattera 3D (era l'ombra pensata per la zattera di Muse, più grande del modello 3D) e il filo di schiuma rettangolare. Ora l'ombra è la sagoma della vista stessa, sfumata a mano e spostata in basso. La zattera di Muse conserva la sua ombra di prima.
+- **Zattera più veloce:** `SAIL_SPEED` 210 → 290 (+38%).
+
 ## 0.2o — 26 nov 2026 — in gioco si legge «v0.2o · isometrica · grafica Muse»
 - **Corretto:** la zattera 3D lasciava un'immagine doppia semitrasparente mentre girava (lo sfumo fra viste vicine copriva tutto l'intervallo). Ora le 32 viste cambiano di netto (cambio netto a metà fra due viste), quindi non c'è più fantasma.
 

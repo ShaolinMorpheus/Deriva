@@ -90,13 +90,13 @@
    i cresce verso SE (giù-destra), j verso SO (giù-sinistra). Il mare sta WO px PNG sotto il piano del ponte.
    =========================================================================== */
 const CFG = {
-  VERSION: 'v0.2o',
+  VERSION: 'v0.2p',
   ART: 0.3,               // px CSS per px PNG = zoom (si cambia coi bottoni + / −; 0.25 = stessa scala del gioco v0.1b.8, 0.5 = quella delle prove 0.2a-d)
   ZOOM_STEPS: [0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6],   // valori di ART dei bottoni
   WO: 64,                 // il livello del mare sta tanti px PNG sotto il piano del ponte (spessore delle facce)
   WALK_SPEED: 110,        // px CSS/s sullo schermo, joystick tutto spinto (a piedi); era 130 con il rimbalzo provvisorio: col ciclo vero i piedi pattinavano
   WALK_CYCLE: 118,        // px PNG di spostamento sullo schermo per un ciclo completo di 6 fotogrammi (≈ 2 passi): i piedi appoggiati non pattinano
-  SAIL_SPEED: 210,        // px CSS/s sullo schermo (in zattera)
+  SAIL_SPEED: 290,        // px CSS/s sullo schermo (in zattera)
   SAIL_ACCEL: 2.6,        // 1/s: quanto in fretta la zattera prende/perde velocità
   RAFT_TURN: 3.2,         // rad/s: quanto in fretta la zattera gira verso la direzione del joystick
   RAFT_AVAIL: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],   // viste della zattera consegnate da Muse (numero k = prua a k·22,5°; cartella assets/iso/mezzi/zattera16/, tela 704x512, centro impronta a (352,336)). Lotto A = 0,4,8,12; B = 2,6,10,14; C = dispari. Il motore usa 4, 8 o 16 viste secondo quelle che ci sono.
@@ -139,11 +139,18 @@ const I = {};
 const RAFT = { n: 4, views: [], win: [0.38, 0.62] };               // viste della zattera in uso: {im, ox, oy} = angolo in alto a sinistra rispetto al centro dell'impronta (a livello dell'acqua)
 const RAFT_BOTTOM = { ne: 468, se: 405, so: 401, no: 461 };      // 4 viste: riga (sotto l'ultima visibile) = vertice S dell'impronta
 function loadOne(src) { return new Promise(res => { const im = new Image(); im.onload = () => { (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => res(im)); }; im.onerror = () => res(null); im.src = src; }); }
+function silhouette(im) {                                        // sagoma scura e sfumata di una vista (per l'ombra sull'acqua), a metà risoluzione
+  const w = Math.round(im.width / 2), h = Math.round(im.height / 2), c = mkCanvas(w, h), g = c.getContext('2d');
+  g.filter = 'none'; g.drawImage(im, 0, 0, w, h); g.globalCompositeOperation = 'source-in'; g.fillStyle = 'rgba(8,26,34,1)'; g.fillRect(0, 0, w, h);
+  const o = mkCanvas(w, h), q = o.getContext('2d');                  // sfumo a mano (niente ctx.filter: su alcuni telefoni fa un rettangolo)
+  q.globalAlpha = 0.12; for (let dx = -3; dx <= 3; dx += 1.5) for (let dy = -2; dy <= 2; dy += 1) q.drawImage(c, dx, dy);
+  return o;
+}
 async function setupRaftViews() {
   const q = new URLSearchParams(location.search).get('viste') || (T('viste') !== 'auto' ? T('viste') : null); if (q) CFG.RAFT_VIEWS = +q;
   if ((new URLSearchParams(location.search).get('zattera') || T('zattera')) !== 'muse') {                    // prova: zattera 3D di Claude (Blender), 32 viste, tela e centro uguali a quelle di Muse
     const ims = await Promise.all(Array.from({ length: 32 }, (_, k) => loadOne('assets/iso/mezzi/zattera3d/zattera3d_' + String(k).padStart(2, '0') + '.png')));
-    if (ims.every(Boolean)) { RAFT.n = 32; RAFT.views = ims.map(im => ({ im, ox: -352, oy: -336 })); RAFT.win = [0.499, 0.501]; return; }   // 32 viste: cambio quasi netto (lo sfumo su tutto l'intervallo fa un'immagine doppia)
+    if (ims.every(Boolean)) { RAFT.n = 32; RAFT.views = ims.map(im => ({ im, ox: -352, oy: -336 })); RAFT.win = [0.499, 0.501]; RAFT.sil = ims.map(silhouette); return; }   // 32 viste: cambio quasi netto (lo sfumo su tutto l'intervallo fa un'immagine doppia)
     console.warn('zattera 3D mancante, uso quella di Muse');
   }
   const av = new Set(CFG.RAFT_AVAIL);
@@ -155,7 +162,7 @@ async function setupRaftViews() {
     if (!ims.every(Boolean)) { console.warn('viste della zattera mancanti per n=' + n); continue; }
     RAFT.n = n; RAFT.views = ims.map(im => ({ im, ox: -352, oy: -336 })); RAFT.win = n >= 16 ? [0, 1] : n === 8 ? [0.2, 0.8] : [0.38, 0.62]; return;
   }
-  RAFT.n = 4; RAFT.win = [0.38, 0.62];            // ripiego: le 4 diagonali del Gruppo iso 3
+  RAFT.sil = null; RAFT.n = 4; RAFT.win = [0.38, 0.62];            // ripiego: le 4 diagonali del Gruppo iso 3
   RAFT.views = ['se', 'so', 'no', 'ne'].map(n => ({ im: I['z' + n], ox: -320, oy: 160 - RAFT_BOTTOM[n] }));
 }
 function loadImages() {
@@ -699,9 +706,15 @@ function drawRaft() {
   if (!CFG.RAFT_FADE) t = t > 0.5 ? 1 : 0;
   else { t = Math.max(0, Math.min(1, (t - RAFT.win[0]) / (RAFT.win[1] - RAFT.win[0]))); t = t * t * (3 - 2 * t); }     // sfumo solo nel tratto centrale (poche viste) o su tutto l'intervallo (16 viste)
   const A = RAFT.views[k], B = RAFT.views[k2];
+  if (RAFT.sil) {                                                   // zattera 3D: ombra = sagoma della vista stessa, spostata in basso (niente rettangolo)
+    const a = RAFT.sil[k], b = RAFT.sil[k2];
+    if (t < 0.999) img(a, p[0] - 352, cyW - 336 + 9, 704, 512, 0.42 * (1 - t));
+    if (t > 0.001) img(b, p[0] - 352, cyW - 336 + 9, 704, 512, 0.42 * t);
+  } else {
   const sA = raftShadow(k * step), sB = raftShadow(k2 * step);       // ombra e schiuma seguono la stessa sfumatura della zattera
   if (t < 0.999) img(sA.c, p[0] + sA.x0, cyW + sA.y0, null, null, 1 - t);
   if (t > 0.001) img(sB.c, p[0] + sB.x0, cyW + sB.y0, null, null, t);
+  }
   if (t < 0.02 || t > 0.98) { const V = t > 0.5 ? B : A; img(V.im, p[0] + V.ox, cyW + V.oy, V.im.width, V.im.height); return; }
   // sfumo lineare A→B (colori premoltiplicati sommati: (1-t)·A + t·B) in un canvas d'appoggio, poi lo copio
   const L = Math.min(A.ox, B.ox), T = Math.min(A.oy, B.oy), R = Math.max(A.ox + A.im.width, B.ox + B.im.width), Bt = Math.max(A.oy + A.im.height, B.oy + B.im.height);
@@ -882,6 +895,7 @@ function parseCode(str) {
 
 // ---- menu ------------------------------------------------------------------------------------------
 const NOVITA = [
+  ['v0.2p', 'Zattera 3D: tolta l’ombra rettangolare (ora l’ombra segue la sagoma). La zattera è più veloce (+38%).'],
   ['v0.2o', 'Zattera 3D: niente più immagine doppia/trasparente mentre gira. Le viste ora cambiano di netto (sono 32, quindi non si nota).'],
   ['v0.2n', 'La zattera 3D (32 viste) è ora quella di serie. Quella di Muse resta in Menu → Prova → Zattera.'],
   ['v0.2m', 'Corretto il rettangolo scuro attorno alla zattera: l’ombra ora è sfumata a mano e funziona su tutti i telefoni.'],
