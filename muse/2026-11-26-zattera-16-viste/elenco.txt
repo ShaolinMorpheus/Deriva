@@ -1,5 +1,11 @@
 scheda_lotto_a.png.b64
+scheda_lotto_b.png.b64
+scheda_lotto_b_v2.png.b64
 zattera_iso_00.png.b64
+zattera_iso_02.png.b64
 zattera_iso_04.png.b64
+zattera_iso_06.png.b64
 zattera_iso_08.png.b64
+zattera_iso_10.png.b64
 zattera_iso_12.png.b64
+zattera_iso_14.png.b64
