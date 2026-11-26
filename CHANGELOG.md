@@ -2,6 +2,11 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2i — 26 nov 2026, notte — in gioco si legge «v0.2i · isometrica · grafica Muse»
+- **Zattera: lotto B montato (viste 02, 06, 10, 14)** → con A+B il motore usa da solo **8 viste** (una ogni 45°, sfumatura nella parte centrale di ogni passo). Verifica: tela 704×512 e magenta 0 in 4/4, lotto A identico a quello già montato. Provata a 16 angoli sul mare: 02 e 10 (le critiche) escono bene — ponte rettangolare piatto 362×272, albero verticale, tenda in piedi; 06 e 14 sono larghi e sottili (544×182) come vuole la geometria isometrica, con il bordo alto appena storto (dichiarato da Muse).
+- Resta: con 8 viste la sfumatura fra diagonale e cardinale mostra ancora una leggera doppia immagine (forme diverse del ponte): attenuata con il lotto C (viste dispari → 16 viste). Taniche in 04/12 ancora al centro (limite dichiarato).
+- Test: 18 prove automatiche ok, nessun errore.
+
 ## Progetto — 26 nov 2026, notte — in gioco resta «v0.2h · isometrica · grafica Muse»
 - L'utente descrive la **visione del gioco**: esplorare il mare, piattaforme con rottami da raccogliere (servono a migliorare), taniche, **missioni** sulle piattaforme (vuote o con nemici), **fortezze di ferro arrugginito** e nemici in stile «smokers» con **motoscafi**, **inizio partita fisso con dialoghi** del personaggio, **menu con le missioni**, **sete e fame**. Scritto in `PROGETTO.md` («Visione di gioco») con un piano proposto in 5 passi (v0.3a–e); l'ordine non è ancora deciso. Nota: sete e fame da fare morbide (pilastro 5).
 

@@ -15,3 +15,20 @@ Vai col **lotto B (02, 06, 10, 14)** — più le viste 04 e 12 corrette qui sopr
 
 ## Ancora in attesa
 Lotto C (dispari), palo v2, e la camminata rifatta (vedi `RISPOSTA.md` del Gruppo iso 4).
+
+
+---
+# Risposta di Claude — zattera 16 viste, lotto B (8 viste pari montate)
+
+## Verificato (ok)
+- Tela 704×512 in 4/4; magenta 0 in 4/4; copia identica dei lotti A (4/4 file uguali a quelli già montati).
+- **Montate** nel prototipo isometrico (v0.2i): con A+B il motore passa da solo a **8 viste** (finestra di sfumatura 0,2–0,8). Provate a 16 angoli sul mare vero (le 8 viste esatte + i 8 angoli intermedi).
+- **02 e 10 (le critiche): escono bene.** Ponte rettangolare piatto come previsto dalla geometria (362×272), albero verticale, tenda in piedi, cassa e taniche leggibili; stesso stile e stessa luce delle diagonali. Nella 10 la vista è un po' più stretta (come dichiarato), non disturba.
+- **06 e 14:** ponte largo e sottile (544×182) come deve venire in isometrica; albero verticale, tenda in piedi. Il bordo alto del ponte è appena storto (dichiarato), si nota solo da vicino.
+
+## Cosa resta (senza urgenza)
+- Con 8 viste la sfumatura a 22,5° fra una diagonale e una cardinale mostra ancora una leggera doppia immagine (forme diverse del ponte): scompare quasi del tutto con le 8 dispari.
+- Taniche nelle viste 04 e 12 ancora più al centro (limite già dichiarato): da sistemare quando si fa il lotto C, se riuscite.
+
+## Prossimo passo
+**Lotto C (viste dispari 01, 03, 05, 07, 09, 11, 13, 15)** — stessa tela, stesso centro (352,336), stessa luce. Poi restano: camminata rifatta, palo v2, Gruppo iso 5 (oggetti di scena).
