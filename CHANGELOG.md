@@ -2,6 +2,12 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2l — 26 nov 2026 — in gioco si legge «v0.2l · isometrica · grafica Muse»
+- **Zattera 3D di prova (Claude, Blender):** 32 viste, una ogni 11,25°, stessa tela 704×512 e stesso centro (352,336) di Muse. Si attiva da Menu → Prova → Zattera (o `?zattera=3d`); di serie resta quella di Muse.
+- Modello costruito da zero in Python (`assets/iso/mezzi/zattera3d/raft_blender.py`): ponte di assi, barili, tenda, cassa, taniche, albero. Angoli e posizioni degli oggetti identici in ogni vista. Colori e texture sono una prima bozza, da migliorare.
+- Allineamento verificato confrontando le sagome con le 16 viste di Muse (la rotazione segue lo stesso verso).
+- Prossimo: colori/texture più vicini allo stile di Muse, dondolo da ferma, taniche e motore a scelta.
+
 ## 0.2k — 26 nov 2026 — in gioco si legge «v0.2k · isometrica · grafica Muse»
 - **Protagonista in 8 direzioni:** montate le 4 cardinali di Muse (Gruppo iso 5: N, E, S, O; fermo + 6 passi, 28 sprite, tela 70×108, piedi in (35,104), magenta 0). Direzione scelta ogni 45° sull'angolo sul terreno (si cambia solo oltre 30° dal centro: niente scatti); il fermo cardinale usa lo stesso punto-piedi della camminata. Il codice di salvataggio e gli slot già conoscono le 8 direzioni (i salvataggi vecchi restano validi).
 - Verifica: 8 direzioni provate sul molo, personaggio coerente, piedi fermi sullo stesso punto.
