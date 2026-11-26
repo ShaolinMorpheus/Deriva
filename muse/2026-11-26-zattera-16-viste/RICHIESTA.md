@@ -1,0 +1,9 @@
+Zattera in 16 viste, per farla girare fluida a 360°. Sostituisce la zattera v2 già chiesta. Serve una vista ogni 22,5°: sono sempre la stessa zattera che gira su sé stessa, come su una piattaforma girevole.
+File: zattera_iso_00.png … _15.png, più i master a piena risoluzione (se riesci anche al doppio, 1408×1024).
+Tela uguale per tutte: 704×512 px, sfondo trasparente, centro dell'impronta (centro del rettangolo 3×2 sul pelo dell'acqua) sempre al pixel (352, 336). Non ritagliare.
+Vista k = prua (lato dell'albero) a k·22,5°, in senso orario sullo schermo: 00 basso-destra · 02 giù · 04 basso-sinistra · 06 sinistra · 08 alto-sinistra · 10 su · 12 alto-destra · 14 destra; i numeri dispari stanno a metà fra due pari.
+Disposizione fissa a bordo (tessere; u = verso la prua, v = a destra guardando la prua; assito ~30 px sopra l'acqua): albero con vela avvolta (1,04 ; −0,10) alto ~180 px · tenda (−0,76 ; +0,18), ~1,1×0,9, alta ~140 px, ingresso verso prua · cassa (0 ; +0,41), ~0,45×0,45, alta ~75 px · tanica rossa (−0,78 ; −0,80) e verde (−0,50 ; −0,85), alte ~70 px. Gli oggetti stanno sempre agli stessi punti: se facendo scorrere le viste in sequenza qualcosa salta, va rifatta.
+Geometria: isometrica 2:1, impronta 3×2 tessere (passo 128×64) con barili sul bordo e assito dentro, stesse dimensioni in tutte le viste. Il foglio guida mostra per ogni vista impronta, asse della prua e basi degli oggetti: disegna dentro quelle impronte.
+Luce: sempre da in alto a sinistra dello schermo, non gira con la zattera (chiari e scuri sui barili e sull'assito cambiano girando). Nessun contorno scuro, alone zero, stesso stile e materiali delle altre viste.
+Ordine di consegna (ogni lotto si monta da solo): lotto A = 00, 04, 08, 12 · lotto B = 02, 06, 10, 14 · lotto C = i dispari. Se non riesci a tenere la coerenza a 16, dichiaralo e consegna le 8 (A+B).
+Più il palo v2 già chiesto.

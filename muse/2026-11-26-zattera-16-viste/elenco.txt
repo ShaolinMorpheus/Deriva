@@ -1,0 +1,5 @@
+scheda_lotto_a.png.b64
+zattera_iso_00.png.b64
+zattera_iso_04.png.b64
+zattera_iso_08.png.b64
+zattera_iso_12.png.b64
