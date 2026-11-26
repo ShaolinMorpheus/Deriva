@@ -2,6 +2,10 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2j — 26 nov 2026 — in gioco si legge «v0.2j · isometrica · grafica Muse»
+- **Zattera: lotto C montato (viste dispari) → 16/16 viste**, una ogni 22,5°; il motore le usa da solo, con cambio netto di vista (nessuna sfumatura, quindi niente doppia immagine). Verifica: tela 704×512 e magenta 0 in 8/8, lotti A+B identici. Provata a 16 angoli sul mare: rotazione continua e coerente. Note: viste 01 e 03 con il ponte un po' più piccolo delle vicine.
+- Test: 18 prove automatiche ok, nessun errore.
+
 ## 0.2i — 26 nov 2026, notte — in gioco si legge «v0.2i · isometrica · grafica Muse»
 - **Zattera: lotto B montato (viste 02, 06, 10, 14)** → con A+B il motore usa da solo **8 viste** (una ogni 45°, sfumatura nella parte centrale di ogni passo). Verifica: tela 704×512 e magenta 0 in 4/4, lotto A identico a quello già montato. Provata a 16 angoli sul mare: 02 e 10 (le critiche) escono bene — ponte rettangolare piatto 362×272, albero verticale, tenda in piedi; 06 e 14 sono larghi e sottili (544×182) come vuole la geometria isometrica, con il bordo alto appena storto (dichiarato da Muse).
 - Resta: con 8 viste la sfumatura fra diagonale e cardinale mostra ancora una leggera doppia immagine (forme diverse del ponte): attenuata con il lotto C (viste dispari → 16 viste). Taniche in 04/12 ancora al centro (limite dichiarato).

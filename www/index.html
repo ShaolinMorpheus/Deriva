@@ -90,7 +90,7 @@
    i cresce verso SE (giù-destra), j verso SO (giù-sinistra). Il mare sta WO px PNG sotto il piano del ponte.
    =========================================================================== */
 const CFG = {
-  VERSION: 'v0.2i',
+  VERSION: 'v0.2j',
   ART: 0.3,               // px CSS per px PNG = zoom (si cambia coi bottoni + / −; 0.25 = stessa scala del gioco v0.1b.8, 0.5 = quella delle prove 0.2a-d)
   ZOOM_STEPS: [0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6],   // valori di ART dei bottoni
   WO: 64,                 // il livello del mare sta tanti px PNG sotto il piano del ponte (spessore delle facce)
@@ -99,7 +99,7 @@ const CFG = {
   SAIL_SPEED: 210,        // px CSS/s sullo schermo (in zattera)
   SAIL_ACCEL: 2.6,        // 1/s: quanto in fretta la zattera prende/perde velocità
   RAFT_TURN: 3.2,         // rad/s: quanto in fretta la zattera gira verso la direzione del joystick
-  RAFT_AVAIL: [0, 2, 4, 6, 8, 10, 12, 14],   // viste della zattera consegnate da Muse (numero k = prua a k·22,5°; cartella assets/iso/mezzi/zattera16/, tela 704x512, centro impronta a (352,336)). Lotto A = 0,4,8,12; B = 2,6,10,14; C = dispari. Il motore usa 4, 8 o 16 viste secondo quelle che ci sono.
+  RAFT_AVAIL: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],   // viste della zattera consegnate da Muse (numero k = prua a k·22,5°; cartella assets/iso/mezzi/zattera16/, tela 704x512, centro impronta a (352,336)). Lotto A = 0,4,8,12; B = 2,6,10,14; C = dispari. Il motore usa 4, 8 o 16 viste secondo quelle che ci sono.
   RAFT_VIEWS: 16,         // massimo di viste da usare (si può abbassare con ?viste=4|8 per confrontare)
   RAFT_FADE: 1,           // 1 = sfuma fra le due viste vicine mentre gira (0 = salto netto fra le 4 viste)
   PR: 0.2,                // raggio dei piedi del protagonista, in tessere
@@ -871,6 +871,7 @@ function parseCode(str) {
 
 // ---- menu ------------------------------------------------------------------------------------------
 const NOVITA = [
+  ['v0.2j', 'Zattera completa: 16 viste di Muse, gira fluida a 360° senza sfumature strane.'],
   ['v0.2i', 'Zattera con 8 viste di Muse (lotti A+B): gira più fluida, ponte e albero coerenti in tutte le direzioni.'],
   ['v0.2h', 'Prima versione come app (APK). Menu ☰ con salvataggi (automatico, 3 slot e codice), Grafica (Auto/Bassa/Media/Alta) e Grafica di prova. Nuova disposizione della piattaforma: pozzo → tubi → serbatoio con la baracca del rifornimento, magazzino di container e gru dietro. Sagoma chiara quando cammini dietro un oggetto.'],
   ['v0.2f', 'Zattera: prime 4 viste nuove di Muse (lotto A) e zattera NE corretta. Con le altre viste la rotazione diventerà fluida.'],

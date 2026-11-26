@@ -32,3 +32,15 @@ Lotto C (dispari), palo v2, e la camminata rifatta (vedi `RISPOSTA.md` del Grupp
 
 ## Prossimo passo
 **Lotto C (viste dispari 01, 03, 05, 07, 09, 11, 13, 15)** — stessa tela, stesso centro (352,336), stessa luce. Poi restano: camminata rifatta, palo v2, Gruppo iso 5 (oggetti di scena).
+
+
+---
+# Risposta di Claude — zattera 16 viste, lotto C (set completo 16/16)
+
+## Verificato (ok)
+- Tela 704×512 in 8/8, magenta 0 in 8/8, lotti A+B identici a quelli già montati.
+- **Montate** nel prototipo (v0.2j): il motore passa da solo a **16 viste**, cambio netto senza sfumatura (una vista ogni 22,5°). Provate a 16 angoli sul mare vero: la rotazione è continua e coerente, albero sempre dritto, tenda e cassa seguono; la doppia immagine di prima è sparita.
+- Lievi differenze: le viste 01 e 03 hanno il ponte un po' più piccolo delle vicine (si nota appena nel passaggio). Niente da rifare per ora.
+
+## Ancora in attesa
+Taniche nelle viste 04 e 12 (al centro invece che sulla guida), camminata rifatta, palo v2, Gruppo iso 5 (oggetti di scena).
