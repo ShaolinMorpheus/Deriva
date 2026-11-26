@@ -2,6 +2,12 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2f — 27 nov 2026, notte — PROVA ISOMETRICA: in gioco si legge «v0.2f · prova isometrica · grafica Muse»
+- **Zattera: lotto A delle 16 viste montato** (viste 00, 04, 08, 12 = le 4 diagonali, tela 704×512, centro impronta (352,336)) e **zattera NE v2** (con la cassa che mancava). Verificato: misure, magenta 0, bordo sud dell'impronta sulla riga 495 in tutte e 4, bordi puliti. Prova a vista in 4 direzioni sul mare: albero a prua, tenda a poppa, cassa al centro in tutte le viste.
+- **Motore:** `CFG.RAFT_AVAIL` elenca le viste consegnate (ora 0,4,8,12) e il motore usa da solo 4, 8 o 16 viste quando il giro è completo (lotto B → 8 viste, lotto C → 16); `?viste=4|8` nell'indirizzo per confrontare. Senza altri lotti la rotazione è come prima: 4 viste con sfumatura (la sovrapposizione fra due viste a 90° resta finché non arrivano B e C).
+- **Limite dichiarato da Muse (accettato per ora):** nelle viste 04 e 12 le due taniche (rossa e verde) stanno più al centro che sulle posizioni della guida; per la rotazione a 16 viste servono nelle stesse posizioni in tutte, altrimenti nella sfumatura «saltano». Chiesto a Muse di ridisegnare 04 e 12 insieme al lotto B.
+- Controlli: nessun errore; zattera, Sali/Scendi e joystick tattile come prima; 14,7 ms medi nel simulatore software (come prima).
+
 ## 0.2e — 27 nov 2026, notte — PROVA ISOMETRICA: in gioco si legge «v0.2e · prova isometrica · grafica Muse»
 Dopo la prova di v0.2d sul telefono: «la camminata non mi piace, non muove bene le braccia», «il gioco è tutto zoomato», «il mare è diverso da come avevamo fatto (macchie d'olio, blu…)».
 - **Zoom.** Nelle prove 0.2a–d la scala era 0,5 px CSS per px PNG (rombo 128×64): il doppio del gioco v0.1b.8 (tessera 64 px CSS = 0,25), quindi 1,88× d'ingrandimento sul telefono e poco mare in vista. Ora di partenza **0,30** (1,13× sul telefono, quasi nativa), e due bottoni **+ / −** a destra (anche tasti + −) con 7 passi da 0,20 a 0,60 (0,25 = stessa scala del gioco di prima; 0,50 = le prove precedenti). La scelta resta salvata sul telefono. Le velocità restano in unità di mondo: a zoom diverso il personaggio impiega lo stesso tempo ad attraversare una tessera.
