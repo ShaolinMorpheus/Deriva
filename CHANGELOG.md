@@ -2,6 +2,12 @@
 Ogni modifica al gioco o al progetto aggiunge una riga qui, con la versione
 che l'utente vede in gioco. Versioni: `0.x` = progetto/prototipo, `1.0` = prima pubblicabile.
 
+## 0.2q — 26 nov 2026 — in gioco si legge «v0.2q · isometrica · grafica Muse»
+- **Zattera immersa nell'acqua** (la zattera 3D sembrava sospesa): rifatte le 32 viste in Blender con i barili a metà sotto il pelo dell'acqua (piano «holdout» a z=0 che nasconde la parte immersa; modello in `raft_blender.py`).
+- **Effetti acqua nel gioco (solo zattera 3D):** onde che si allargano dallo scafo, acqua scura a contatto, schiuma a tratti irregolari sui lati verso di noi, scia di cerchi quando naviga.
+- Tutto senza `ctx.filter` (che su alcuni telefoni disegna un rettangolo).
+- Possibile passo successivo: acqua animata renderizzata in Blender attorno alla zattera.
+
 ## 0.2p — 26 nov 2026 — in gioco si legge «v0.2p · isometrica · grafica Muse»
 - **Tolta l'ombra rettangolare** sotto la zattera 3D (era l'ombra pensata per la zattera di Muse, più grande del modello 3D) e il filo di schiuma rettangolare. Ora l'ombra è la sagoma della vista stessa, sfumata a mano e spostata in basso. La zattera di Muse conserva la sua ombra di prima.
 - **Zattera più veloce:** `SAIL_SPEED` 210 → 290 (+38%).

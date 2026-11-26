@@ -90,7 +90,7 @@
    i cresce verso SE (giù-destra), j verso SO (giù-sinistra). Il mare sta WO px PNG sotto il piano del ponte.
    =========================================================================== */
 const CFG = {
-  VERSION: 'v0.2p',
+  VERSION: 'v0.2q',
   ART: 0.3,               // px CSS per px PNG = zoom (si cambia coi bottoni + / −; 0.25 = stessa scala del gioco v0.1b.8, 0.5 = quella delle prove 0.2a-d)
   ZOOM_STEPS: [0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6],   // valori di ART dei bottoni
   WO: 64,                 // il livello del mare sta tanti px PNG sotto il piano del ponte (spessore delle facce)
@@ -363,6 +363,7 @@ function update(dt) {
     raft.speed += (want - raft.speed) * Math.min(1, dt * CFG.SAIL_ACCEL);
     if (!want && raft.speed < 1) raft.speed = 0;
     pushRaftOut();
+    wakeSpawn();
     const ci = Math.cos(raft.phi), cj = Math.sin(raft.phi), perUnit = Math.hypot((ci - cj) * 64, (ci + cj) * 32);   // px CSS sullo schermo per tessera lungo la prua
     raft.vi = ci * raft.speed / perUnit; raft.vj = cj * raft.speed / perUnit;
     let ni = raft.i + raft.vi * dt;
@@ -699,7 +700,48 @@ function raftShadow(ang) {
   return RS[key] = { c, x0, y0 };
 }
 let rfT = null;                                                   // canvas d'appoggio per sfumare due viste
-function drawRaft() {
+// ---- acqua attorno alla zattera 3D: onde che si allargano, schiuma sul pelo dell'acqua, scia quando naviga -----------------------
+const FOOT = [1.52, 1.07], wake = []; let wakeT = 0;
+function footPts(ci, cj, hx, hy) { return [[-hx, -hy], [hx, -hy], [hx, hy], [-hx, hy]].map(([x, y]) => { const a = ci * x - cj * y, b = cj * x + ci * y; return [(a - b) * 128, (a + b) * 64]; }); }
+function wakeSpawn() {
+  if (!RAFT.sil || raft.speed < 30 || stats.t - wakeT < 0.22) return;
+  wakeT = stats.t; const ci = Math.cos(raft.phi), cj = Math.sin(raft.phi);
+  for (const y of [-0.7, 0.7]) { const x = -1.5; wake.push({ i: raft.i + ci * x - cj * y, j: raft.j + cj * x + ci * y, t: stats.t }); }
+  while (wake.length && stats.t - wake[0].t > 2) wake.shift();
+}
+function polyPath(pts, cx, cy, closed) { ctx.beginPath(); pts.forEach((q, n) => n ? ctx.lineTo(sxp(cx + q[0]), syp(cy + q[1])) : ctx.moveTo(sxp(cx + q[0]), syp(cy + q[1]))); if (closed) ctx.closePath(); }
+function waterBack() {
+  const pc = PX(raft.i, raft.j), cx = pc[0], cy = pc[1] + CFG.WO, ci = Math.cos(raft.phi), cj = Math.sin(raft.phi), t = stats.t;
+  ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  for (const w of wake) {                                              // scia: cerchi che si allargano e svaniscono
+    const age = t - w.t, a = 0.22 * Math.max(0, 1 - age / 2) ** 1.5; if (a <= 0.005) continue;
+    const q = PX(w.i, w.j), r = 0.15 + age * 0.5;
+    ctx.strokeStyle = 'rgba(232,244,246,' + a.toFixed(3) + ')'; ctx.lineWidth = Math.max(1, 5 - age * 2) * S;
+    ctx.beginPath(); ctx.ellipse(sxp(q[0]), syp(q[1] + CFG.WO), r * 181 * S, r * 90.5 * S, 0, 0, 7); ctx.stroke();
+  }
+  for (let k = 0; k < 3; k++) {                                        // onde che escono dallo scafo
+    const ph = (t * 0.32 + k / 3) % 1, e = 0.03 + ph * 0.34, a = 0.40 * (1 - ph) * (1 - ph);
+    polyPath(footPts(ci, cj, FOOT[0] + e, FOOT[1] + e), cx, cy, true);
+    ctx.strokeStyle = 'rgba(228,242,244,' + a.toFixed(3) + ')'; ctx.lineWidth = (9 - ph * 4) * S; ctx.stroke();
+  }
+  polyPath(footPts(ci, cj, FOOT[0] + 0.02, FOOT[1] + 0.02), cx, cy, true);   // acqua scura a contatto con lo scafo
+  ctx.strokeStyle = 'rgba(8,30,38,.22)'; ctx.lineWidth = 12 * S; ctx.stroke();
+  ctx.restore();
+}
+function waterFront() {                                                  // schiuma sul pelo dell'acqua, sui due lati rivolti verso di noi (sopra la zattera)
+  const pc = PX(raft.i, raft.j), cx = pc[0], cy = pc[1] + CFG.WO, ci = Math.cos(raft.phi), cj = Math.sin(raft.phi), t = stats.t;
+  const pts = footPts(ci, cj, FOOT[0] - 0.02, FOOT[1] - 0.02);
+  ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  for (let n = 0; n < 4; n++) {
+    const a = pts[n], b = pts[(n + 1) % 4]; if ((a[1] + b[1]) / 2 < 0) continue;
+    polyPath([a, b], cx, cy, false);
+    ctx.setLineDash([46 * S, 15 * S, 20 * S, 12 * S]); ctx.lineDashOffset = -t * 8 * S;           // schiuma a tratti irregolari che scorrono piano
+    for (const [w, al] of [[15, .10], [9, .16], [4, .30]]) { ctx.strokeStyle = 'rgba(240,249,250,' + al + ')'; ctx.lineWidth = w * S; ctx.stroke(); }
+  }
+  ctx.restore();
+}
+function drawRaft() { if (RAFT.sil) waterBack(); drawRaftBody(); if (RAFT.sil) waterFront(); }
+function drawRaftBody() {
   const p = PX(raft.i, raft.j), cyW = p[1] + CFG.WO, n = RAFT.n, step = TAU / n;
   const f = wrapAng(raft.phi) / step, k = Math.floor(f) % n, k2 = (k + 1) % n;
   let t = f - Math.floor(f);
@@ -895,6 +937,7 @@ function parseCode(str) {
 
 // ---- menu ------------------------------------------------------------------------------------------
 const NOVITA = [
+  ['v0.2q', 'Zattera immersa nell’acqua: barili a metà sotto il pelo, onde che si allargano, schiuma sullo scafo e scia quando naviga.'],
   ['v0.2p', 'Zattera 3D: tolta l’ombra rettangolare (ora l’ombra segue la sagoma). La zattera è più veloce (+38%).'],
   ['v0.2o', 'Zattera 3D: niente più immagine doppia/trasparente mentre gira. Le viste ora cambiano di netto (sono 32, quindi non si nota).'],
   ['v0.2n', 'La zattera 3D (32 viste) è ora quella di serie. Quella di Muse resta in Menu → Prova → Zattera.'],

@@ -42,7 +42,7 @@ def mat(name, base, rough=0.8, rust=None, moss=None, scale=14, bump=0.4):
     return m
 
 def lin(h): return tuple((int(h[i:i+2],16)/255)**2.2 for i in (1,3,5))
-root=bpy.data.objects.new('raft',None); sc.collection.objects.link(root); root.scale=(0.9,0.9,0.9)
+root=bpy.data.objects.new('raft',None); sc.collection.objects.link(root); root.scale=(0.9,0.9,0.9); root.location=(0,0,-0.2)
 def put(o,m,parent=root):
     o.data.materials.append(m); o.parent=parent; return o
 def box(loc,size,m,rot=0):
@@ -106,6 +106,8 @@ box((0.55,-0.55,ZD+0.24),(0.26,0.12,0.36),green,0.15)
 cyl((1.05,0.5,ZD+0.55),0.09,1.0,cloth,v=16)
 for z in (0.2,0.45,0.7): cyl((1.05,0.5,ZD+z),0.105,0.05,rope,v=16)
 cyl((1.05,0.5,ZD+1.12),0.07,0.25,crate,v=12)
+# acqua: piano holdout a z=0, la parte immersa sparisce
+bpy.ops.mesh.primitive_plane_add(size=20,location=(0,0,0)); wp=bpy.context.object; wp.is_holdout=True
 # camera
 cam=bpy.data.cameras.new('c'); cam.type='ORTHO'; cam.ortho_scale=704/181.0
 co=bpy.data.objects.new('c',cam); sc.collection.objects.link(co); sc.camera=co
